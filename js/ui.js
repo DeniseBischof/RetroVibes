@@ -939,6 +939,7 @@ function openGenre(g, override){
   master.gain.value = masterVol;
   if(delNode) delNode.delayTime.value = delayZeit();
   tracks.forEach(buildChain); applyAll();
+  setzeFigurgroesse();
   renderRoster(); renderStage(); renderBars(); renderTimeline(); renderInspector();
   paintStagePrint(); watchStage(); setzeRegen(g); setzeSterne(g);
   markStageDirty();
@@ -977,6 +978,57 @@ function backToPick(){
   renderGenreCards();
 }
 
+/* ---------- 11c. Kleiner Schirm ----------
+   "Klein" ist hier nicht die Fensterbreite allein: das iPad meldet quer bis
+   zu 1366 Punkte und ist trotzdem eng, weil alles mit dem Finger bedient
+   wird und die Buehne neben Kiste und Reglern liegt. Darum beides zusammen -
+   grober Zeiger UND ein Schirm unter Notebookgroesse, oder schlicht sehr
+   schmal. Die Antwort haengt als Klasse am Wurzelelement, damit CSS und
+   Sprite-Massstab dieselbe benutzen und nicht auseinanderlaufen. */
+function kleineFiguren(){
+  /* innerWidth ist nicht immer zu trauen - in einem verborgenen Rahmen
+     meldet es 0, und dann waere jeder Schirm ploetzlich klein. Deshalb der
+     groessere der beiden Werte und ein vernuenftiger Rueckfall. */
+  const b = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0) || 1280;
+  /* `any-pointer` statt `pointer`: mit angestecktem Trackpad meldet das
+     iPad als PRIMAERES Zeigegeraet einen feinen Zeiger - der Bildschirm
+     bleibt trotzdem ein Beruehrungsbildschirm, und die Finger bleiben
+     dieselben. `any-pointer: coarse` fragt, ob es UEBERHAUPT einen groben
+     Zeiger gibt, und das ist die Frage, die hier zaehlt. */
+  const grob = !!(window.matchMedia && matchMedia('(any-pointer: coarse)').matches);
+  /* Zwei Wege zu "klein": ein Beruehrungsgeraet bis Tabletbreite (das iPad
+     meldet quer 1024 bis 1366), oder schlicht ein schmales Fenster - ab
+     1120 rueckt das Layout ohnehin schon zusammen. */
+  return (grob && b <= 1400) || b <= 1120;
+}
+/* Gibt true zurueck, wenn sich die Antwort geaendert hat - nur dann muss
+   neu gezeichnet werden. */
+function setzeFigurgroesse(){
+  const klein = kleineFiguren();
+  const wurzel = document.documentElement;
+  if(wurzel.classList.contains('klein') === klein) return false;
+  wurzel.classList.toggle('klein', klein);
+  return true;
+}
+/* Der Massstab der Figurenkiste steckt im Bild, nicht im CSS: ein Sprite
+   auf drei Viertel skaliert bekommt ungleich breite Punkte. 3 und 2 sind
+   beides ganze Zahlen, also bleibt das Raster sauber. */
+function rosterSkala(){
+  return document.documentElement.classList.contains('klein') ? 2 : 3;
+}
+function figurgroessePruefen(){
+  if(!setzeFigurgroesse()) return;
+  if(!genre || $('#screenMix').hidden) return;
+  renderRoster(); renderStage(); markStageDirty();
+}
+window.addEventListener('resize', figurgroessePruefen, {passive: true});
+/* Beim Drehen meldet Safari die neue Breite erst nach dem Ereignis - ohne
+   den kurzen Nachschlag bliebe der alte Massstab stehen. */
+window.addEventListener('orientationchange', function(){
+  figurgroessePruefen();
+  setTimeout(figurgroessePruefen, 250);
+}, {passive: true});
+
 /* ---------- 12. Figurenkiste ---------- */
 function renderRoster(){
   const box = $('#roster');
@@ -997,33 +1049,129 @@ function renderRoster(){
       item.type = 'button';
       item.disabled = used;
       item.style.setProperty('--c', genre.cats[p.cat]);
-      item.draggable = !used;
       item.setAttribute('aria-label', used ? p.name+' ist in diesem Takt schon dabei' : p.name+' zu diesem Takt hinzufügen');
       item.setAttribute('data-hint', used
         ? '<b>'+p.name+'</b> ist in diesem Takt schon dabei.'
-        : '<b>'+p.name+'</b> antippen und loslegen.');
+        : '<b>'+p.name+'</b> antippen &ndash; oder auf die Bühne ziehen.');
       /* Auch die Figurenliste zeigt den Druck, nicht das rohe Sprite -
          sonst stehen daneben gedruckte Figuren auf der Buehne. */
       /* In der Liste steht der saubere Druck: Platten genau
          uebereinander, kein Versatz. */
       const cv = el('canvas');
-      const pl = risoPlatten(p.sprite, genre, 3);
+      const pl = risoPlatten(p.sprite, genre, rosterSkala());
       cv.width = pl.w; cv.height = pl.h;
       zeichneFigur(cv.getContext('2d'), pl, 0, 0, 0, 0, 0, 0);
       item.appendChild(cv);
       item.appendChild(el('span','',p.name));
       if(!used){
-        item.addEventListener('click', function(){ addTrack(p); });
-        item.addEventListener('dragstart', function(e){
-          e.dataTransfer.setData('text/plain', p.id);
-          e.dataTransfer.effectAllowed = 'copy';
+        item.addEventListener('click', function(){
+          /* Ein Zug endet mit einem Klick auf dieselbe Kachel. Ohne diese
+             Sperre landet die Figur zweimal auf der Buehne - oder, wenn
+             man neben der Buehne loslaesst, obwohl man abgebrochen hat. */
+          if(zugVerbraucht(item)) return;
+          addTrack(p);
         });
+        item.addEventListener('pointerdown', function(e){ zugStarten(e, p, item); });
       }
       grid.appendChild(item);
     });
     box.appendChild(grid);
   });
 }
+/* ---------- 12b. Figuren auf die Buehne ziehen ----------
+   HTML5-Drag gibt es auf dem Tablet nicht: dort haengt `dragstart` am
+   langen Druck und kommt in der Praxis nie. Darum ein eigener Zug ueber
+   Pointer-Ereignisse - der laeuft auf Maus und Finger gleich, und damit
+   gibt es nur noch EIN Verhalten statt zwei sich widersprechender.
+
+   Der Streit mit dem Scrollen ist im CSS geloest, nicht hier: `.rchar`
+   traegt `touch-action: pan-y`, und die Buehne liegt rechts - laengs
+   scrollt der Browser die Kiste, quer ziehen wir. Unter 900 px liegt die
+   Buehne unten und die Kiste scrollt quer, dort ist es `pan-x`. Faengt
+   der Browser doch an zu scrollen, nimmt er uns den Zeiger weg und
+   schickt `pointercancel`; genau darauf brechen wir ab.
+
+   Erst ab SCHWELLE Punkten wird aus dem Druck ein Zug. Darunter bleibt es
+   ein Tippen, und das muss es auch: die Figur soll weiter auf einen
+   Fingertipp hin auf die Buehne springen. */
+const ZUG_SCHWELLE = 12;
+let zug = null;
+let zugSperre = null;
+
+/* Nach einem Zug schickt der Browser noch einen Klick hinterher - auf die
+   Kachel, an der der Zeiger hing. Der darf nicht nochmal dieselbe Figur
+   setzen. Die Sperre gilt aber NUR fuer genau diese Kachel und nur einen
+   Wimpernschlag lang: eine pauschale Sperre schluckte sonst den naechsten
+   echten Tipp auf eine ganz andere Figur. Genau das ist beim Testen
+   passiert. */
+function zugVerbraucht(item){
+  if(!zugSperre) return false;
+  if(performance.now() - zugSperre.zeit > 400){ zugSperre = null; return false; }
+  if(zugSperre.item !== item) return false;
+  zugSperre = null;
+  return true;
+}
+function ueberBuehne(x, y){
+  const el = document.elementFromPoint(x, y);
+  return !!(el && el.closest && el.closest('.stage'));
+}
+function geistBauen(item){
+  const quelle = item.querySelector('canvas');
+  const g = el('div','figurgeist');
+  if(quelle){
+    const c = document.createElement('canvas');
+    c.width = quelle.width; c.height = quelle.height;
+    /* cloneNode kopiert bei einem Canvas nur die Huelle, nicht das Bild -
+       der Geist waere leer. Also einmal hinueberzeichnen. */
+    c.getContext('2d').drawImage(quelle, 0, 0);
+    g.appendChild(c);
+  }
+  return g;
+}
+function zugStarten(e, p, item){
+  if(e.button > 0) return;
+  zug = {p: p, item: item, id: e.pointerId, x0: e.clientX, y0: e.clientY, laeuft: false};
+}
+function zugBewegen(e){
+  if(!zug || e.pointerId !== zug.id) return;
+  if(!zug.laeuft){
+    const dx = e.clientX - zug.x0, dy = e.clientY - zug.y0;
+    if(dx*dx + dy*dy < ZUG_SCHWELLE*ZUG_SCHWELLE) return;
+    zug.laeuft = true;
+    /* Zeiger einfangen: sonst verliert die Kachel den Zug, sobald der
+       Finger sie verlaesst - und das tut er sofort. */
+    try{ zug.item.setPointerCapture(zug.id); }catch(err){}
+    zug.geist = geistBauen(zug.item);
+    document.body.appendChild(zug.geist);
+    document.body.classList.add('zieht');
+    hint('<b>' + zug.p.name + '</b> auf die Bühne ziehen und loslassen.');
+  }
+  e.preventDefault();
+  zug.geist.style.left = e.clientX + 'px';
+  zug.geist.style.top = e.clientY + 'px';
+  const buehne = $('.stage');
+  if(buehne) buehne.classList.toggle('zielaktiv', ueberBuehne(e.clientX, e.clientY));
+}
+function zugBeenden(e, abbruch){
+  if(!zug || (e && e.pointerId !== undefined && e.pointerId !== zug.id)) return;
+  const z = zug;
+  zug = null;
+  if(z.geist) z.geist.remove();
+  document.body.classList.remove('zieht');
+  const buehne = $('.stage');
+  if(buehne) buehne.classList.remove('zielaktiv');
+  try{ z.item.releasePointerCapture(z.id); }catch(err){}
+  if(!z.laeuft) return;
+  zugSperre = {item: z.item, zeit: performance.now()};
+  if(!abbruch && e && ueberBuehne(e.clientX, e.clientY)) addTrack(z.p);
+  else hint('Daneben losgelassen &ndash; <b>' + z.p.name + '</b> steht noch in der Kiste.');
+}
+/* Am Fenster, nicht an der Kachel: die Figurenliste wird bei jeder
+   Aenderung neu gebaut, und ein Zug soll das ueberleben. */
+window.addEventListener('pointermove', zugBewegen, {passive: false});
+window.addEventListener('pointerup', function(e){ zugBeenden(e, false); });
+window.addEventListener('pointercancel', function(e){ zugBeenden(e, true); });
+
 function addTrack(p){
   if(tracks.some(function(t){ return t.p.id === p.id; })) return;
   let ersetzt = null;
@@ -1099,25 +1247,12 @@ function renderStage(){
     box.appendChild(slot);
   });
   if(tracks.length < MAX_TRACKS){
-    /* Auf dem Tablet gibt es kein Ziehen: HTML5-Drag haengt dort am
-       langen Druck und wird nicht gefunden. Der rettende Hinweis kaeme
-       ueber `mouseover` - den es auf Touch auch nicht gibt. Also sagt die
-       Beschriftung selbst, was geht. */
-    const tippen = !!(window.matchMedia && matchMedia('(hover: none), (pointer: coarse)').matches);
-    const empty = el('div','slot empty', tippen
-      ? '<em>+</em><span>FIGUR<br>ANTIPPEN</span>'
-      : '<em>+</em><span>FIGUR HIER<br>ABLEGEN</span>');
-    empty.setAttribute('data-hint', tippen
-      ? 'Tipp in der Kiste eine Figur an &ndash; sie stellt sich von allein auf die Bühne.'
-      : 'Zieh eine Figur aus der Kiste links hierher &ndash; oder klick sie einfach an.');
-    empty.addEventListener('dragover', function(e){ e.preventDefault(); empty.classList.add('drop'); });
-    empty.addEventListener('dragleave', function(){ empty.classList.remove('drop'); });
-    empty.addEventListener('drop', function(e){
-      e.preventDefault(); empty.classList.remove('drop');
-      const id = e.dataTransfer.getData('text/plain');
-      const p = genre.chars.find(function(c){ return c.id === id; });
-      if(p) addTrack(p);
-    });
+    /* Frueher stand hier auf Touch ein anderer Text, weil es dort kein
+       Ziehen gab. Seit der Zug ueber Pointer-Ereignisse laeuft (siehe
+       zugStarten), koennen Maus und Finger dasselbe - also sagt die
+       Beschriftung ueberall dasselbe. */
+    const empty = el('div','slot empty','<em>+</em><span>ZIEHEN ODER<br>ANTIPPEN</span>');
+    empty.setAttribute('data-hint','Zieh eine Figur aus der Kiste hierher &ndash; oder tipp sie einfach an.');
     box.appendChild(empty);
   }
   renderPlatte();

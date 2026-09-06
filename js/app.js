@@ -74,14 +74,6 @@ function wireTransport(){
     const n = e.target.closest ? e.target.closest('[data-hint]') : null;
     if(n) hint(n.getAttribute('data-hint'));
   });
-  const stage = $('.stage');
-  stage.addEventListener('dragover', function(e){ e.preventDefault(); });
-  stage.addEventListener('drop', function(e){
-    e.preventDefault();
-    const id = e.dataTransfer.getData('text/plain');
-    const p = genre && genre.chars.find(function(c){ return c.id === id; });
-    if(p) addTrack(p);
-  });
   document.addEventListener('visibilitychange', function(){
     if(document.hidden && playing) stop();
     else{

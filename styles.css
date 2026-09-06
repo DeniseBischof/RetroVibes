@@ -241,6 +241,12 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 28px; background: v
   position: relative; min-width: 0; min-height: 94px; overflow: hidden; padding: 7px 5px 6px;
   color: var(--paper-ink); text-align: center; background: #fffdf5; border: 2px solid #b9ad97;
   border-radius: 7px; box-shadow: 2px 2px 0 #c8bca5;
+  /* Hier entscheidet sich, ob ein Finger zieht oder scrollt - nicht im
+     JavaScript. Die Buehne liegt rechts: laengs (pan-y) scrollt der
+     Browser die Kiste, quer gehoert die Bewegung uns. Ohne die Angabe
+     nimmt der Browser jede Geste als Scrollen und der Zug kommt nie an. */
+  touch-action: pan-y;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
 .rchar:hover { border-color: var(--c); }
 .rchar canvas { display: block; margin: 0 auto; image-rendering: pixelated; }
@@ -249,6 +255,45 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 28px; background: v
 .rchar.used::after {
   content: "IN TAKT"; position: absolute; inset: 0 0 auto; padding: 2px 3px; color: #151223;
   background: var(--c); font: 700 9px/1.2 var(--display); letter-spacing: .05em;
+}
+
+/* Kleiner Schirm (Tablet): dieselben Figuren, vier Fuenftel gross.
+   0,8 ist nicht beliebig gewaehlt - die Buehnenfigur wird mit P = 5 Punkten
+   je Sprite-Punkt gezeichnet, und 5 * 0,8 = 4 ist wieder eine ganze Zahl.
+   Bei 0,75 waeren es 3,75 und das Raster wuerde ungleichmaessig.
+   Die Figurenkiste geht den anderen Weg und zeichnet gleich kleiner
+   (rosterSkala) - ein Bild zu skalieren kostet dort mehr, als es bringt. */
+.klein .slot { width: 88px; min-height: 128px; }
+.klein .slot canvas { width: 76.8px; height: 112px; }
+.klein .slots { gap: 6px; padding: 12px 10px 2px; }
+.klein .rchar { min-height: 76px; padding: 6px 4px 5px; }
+.klein .rchar span { font-size: 10px; }
+.klein .rchar.used::after { font-size: 8px; }
+.klein .rgrid { gap: 7px; }
+.klein .rlabel { margin: 12px 0 6px; font-size: 11px; }
+/* Der leere Platz ist jetzt 88 statt 110 Punkte breit - "ZIEHEN ODER"
+   passt darin nur kleiner. Vorher wurde es abgeschnitten. */
+.klein .slot.empty em { font-size: 24px; }
+.klein .slot.empty span { font-size: 9px; letter-spacing: .02em; }
+/* Auf dem Tablet quer (1080 Punkte) brach die Kopfleiste in eine zweite
+   Zeile um - gemessen 1085 Punkte Inhalt auf 1052 Punkte Platz, es fehlten
+   also 33. Die holen engere Abstaende und kuerzere Regler. Nur oberhalb
+   von 900 Punkten: darunter sollen die Regler ausdruecklich in die Breite
+   gehen, und diese Regel wuerde das wegen ihrer hoeheren Gewichtung
+   ueberstimmen. */
+@media (min-width: 901px) {
+  .klein .bar { gap: 8px; }
+  .klein .ctl input[type="range"] { width: 76px; }
+  .klein .btn.ghost { padding-inline: 9px; }
+  /* Mit Songart-Gruppe reicht auch das nicht: gemessen 1248 Punkte Inhalt
+     auf 1052 Punkte Platz. Vollstaendig aufholen liesse sich das nur, indem
+     Weltname, Regler und Knoepfe unlesbar klein werden - also holen wir das
+     Bequeme (Marke und Regler ruecken zusammen) und lassen die Leiste den
+     Rest umbrechen. Zwei Zeilen sind hier die ehrlichere Antwort. */
+  .klein .brandzeile .logo { font-size: 16px; }
+  .klein .weltnote { font-size: 11px; }
+  .klein .songart { padding: 5px 6px; font-size: 10px; }
+  .klein .bar.mit-songart .ctl input[type="range"] { width: 58px; }
 }
 
 /* Sticker-Bühne */
@@ -385,7 +430,20 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 28px; background: v
 }
 .slot.empty em { font-style: normal; font-size: 30px; font-weight: 300; }
 .slot.empty span { margin-top: 5px; font: 600 11px/1.3 var(--display); letter-spacing: .05em; text-align: center; }
-.slot.empty.drop { background: rgba(246,236,214,.92); border-color: var(--riso2, #3c2e49); }
+/* Die Figur, die am Finger klebt. `pointer-events: none` ist Pflicht -
+   sonst findet elementFromPoint immer nur den Geist und nie die Buehne. */
+.figurgeist {
+  position: fixed; z-index: 90; pointer-events: none; opacity: .92;
+  transform: translate(-50%, -72%);
+  filter: drop-shadow(3px 4px 0 rgba(9,7,16,.45));
+}
+.figurgeist canvas { display: block; image-rendering: pixelated; }
+body.zieht { cursor: grabbing; }
+body.zieht .rchar { cursor: grabbing; }
+.stage.zielaktiv::after {
+  content: ""; position: absolute; inset: 6px; z-index: 3; pointer-events: none;
+  border: 3px dashed var(--ac); border-radius: 8px;
+}
 /* Der Boden wird jetzt mitgedruckt - das Element haelt nur noch den
    Platz frei und markiert die Hoehe, auf der die Figuren stehen. */
 .stagefloor { z-index: 1; height: 18px; margin: 0 14px; }
@@ -614,7 +672,11 @@ body.laeuft .platte { animation: plattedreht 1.8s linear infinite; }
   .rlabel { width: 100%; min-width: 0; margin: 0 0 3px; scroll-snap-align: start; }
   .rlabel::after { min-width: 40px; }
   .rgrid { display: flex; gap: 8px; }
-  .rchar { width: 100px; min-height: 96px; }
+  /* Hier scrollt die Kiste quer und die Buehne liegt darunter - also ist
+     es genau andersherum als oben: laengs ziehen wir, quer scrollt der
+     Browser. */
+  .rchar { width: 100px; min-height: 96px; touch-action: pan-x; }
+  .klein .rchar { width: 84px; min-height: 82px; }
   .stage { order: 2; min-height: 340px; overflow: hidden !important; }
   .slots { min-height: 250px; }
   .insp {
