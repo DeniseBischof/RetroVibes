@@ -263,18 +263,27 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 28px; background: v
    Bei 0,75 waeren es 3,75 und das Raster wuerde ungleichmaessig.
    Die Figurenkiste geht den anderen Weg und zeichnet gleich kleiner
    (rosterSkala) - ein Bild zu skalieren kostet dort mehr, als es bringt. */
-.klein .slot { width: 88px; min-height: 128px; }
-.klein .slot canvas { width: 76.8px; height: 112px; }
-.klein .slots { gap: 6px; padding: 12px 10px 2px; }
-.klein .rchar { min-height: 76px; padding: 6px 4px 5px; }
-.klein .rchar span { font-size: 10px; }
-.klein .rchar.used::after { font-size: 8px; }
-.klein .rgrid { gap: 7px; }
-.klein .rlabel { margin: 12px 0 6px; font-size: 11px; }
+/* EIN Punkt zum Drehen. Erlaubt sind nur Faktoren, bei denen 5 * Faktor
+   ganz bleibt - die Buehnenfigur wird mit P = 5 Punkten je Sprite-Punkt
+   gezeichnet: 0,8 = 4 Punkte, 0,6 = 3, 0,4 = 2. Alles dazwischen (0,7 waere
+   3,5) macht das Pixelraster ungleichmaessig, weil manche Reihen breiter
+   ausfallen als andere. Wer weiter verkleinern will, geht auf 0,4 - und
+   sollte dann auch rosterSkala() in ui.js von 2 auf 1 setzen. */
+.klein { --figskala: .6; }
+.klein .slot { width: calc(96px * var(--figskala) + 10px); min-height: calc(140px * var(--figskala) + 20px); }
+.klein .slot canvas { width: calc(96px * var(--figskala)); height: calc(140px * var(--figskala)); }
+.klein .slot .nameplate { min-height: 24px; padding: 3px; border-top-width: 4px; font-size: 9px; }
+.klein .slot .kill { transform: scale(.8); transform-origin: top right; }
+.klein .slots { gap: 5px; padding: 10px 8px 2px; }
+.klein .rchar { min-height: 64px; padding: 4px 3px 4px; }
+.klein .rchar span { margin-top: 2px; font-size: 9px; }
+.klein .rchar.used::after { font-size: 7px; padding: 1px 2px; }
+.klein .rgrid { gap: 6px; }
+.klein .rlabel { margin: 10px 0 5px; font-size: 10px; }
 /* Der leere Platz ist jetzt 88 statt 110 Punkte breit - "ZIEHEN ODER"
    passt darin nur kleiner. Vorher wurde es abgeschnitten. */
-.klein .slot.empty em { font-size: 24px; }
-.klein .slot.empty span { font-size: 9px; letter-spacing: .02em; }
+.klein .slot.empty em { font-size: 20px; }
+.klein .slot.empty span { font-size: 8px; letter-spacing: 0; }
 /* Auf dem Tablet quer (1080 Punkte) brach die Kopfleiste in eine zweite
    Zeile um - gemessen 1085 Punkte Inhalt auf 1052 Punkte Platz, es fehlten
    also 33. Die holen engere Abstaende und kuerzere Regler. Nur oberhalb
