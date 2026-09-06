@@ -1,0 +1,707 @@
+{
+  "hinweis": "Optionale Aufnahmen. Fehlt hier ein Eintrag oder eine Datei, klingt die betroffene Figur synthetisch - das ist kein Fehler. Anleitung in README.md.",
+  "v": 1,
+  "raum": {
+    "datei": "raum/kleinerraum.m4a",
+    "name": "AK-SROOMS_016",
+    "quelle": "Adventure Kid Reverb Impulse Responses",
+    "url": "https://www.adventurekid.se/akrt/free-reverb-impulse-responses/",
+    "autor": "Kristoffer Ekstrand",
+    "lizenz": "CC BY 4.0",
+    "lizenzUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "bearbeitung": "auf 44,1 kHz Stereo gewandelt, im Programm um einen gerechneten Nachhall verlaengert"
+  },
+  "instrumente": {
+    "kick": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Bass Drum 1; gekuerzt, Mono, AAC",
+      "dateien": [
+        {
+          "note": 60,
+          "datei": "drums/kick.m4a"
+        }
+      ]
+    },
+    "snare": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Snare Drum Modern 1; gekuerzt, Mono, AAC",
+      "dateien": [
+        {
+          "note": 60,
+          "datei": "drums/snare.m4a"
+        }
+      ]
+    },
+    "clap": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Claps; gekuerzt, Mono, AAC",
+      "dateien": [
+        {
+          "note": 60,
+          "datei": "drums/clap.m4a"
+        }
+      ]
+    },
+    "streicher": {
+      "quelle": "Sonatina Symphonic Orchestra",
+      "url": "https://github.com/peastman/sso",
+      "autor": "Mattias Westlund",
+      "lizenz": "CC Sampling Plus 1.0",
+      "lizenzUrl": "https://creativecommons.org/licenses/sampling+/1.0/",
+      "bearbeitung": "Violen gestrichen gehalten, unter c3 die Celli desselben Satzes; alle drei Halbtoene eine eigene Aufnahme, ab dem Einsatz geschnitten, auf gemeinsame Lautheit gezogen, Mono, AAC",
+      "gehalten": true,
+      "attack": 0.016,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 42,
+          "datei": "celli/42.m4a"
+        },
+        {
+          "note": 45,
+          "datei": "celli/45.m4a"
+        },
+        {
+          "note": 48,
+          "datei": "violas/48.m4a"
+        },
+        {
+          "note": 51,
+          "datei": "violas/51.m4a"
+        },
+        {
+          "note": 54,
+          "datei": "violas/54.m4a"
+        },
+        {
+          "note": 57,
+          "datei": "violas/57.m4a"
+        },
+        {
+          "note": 60,
+          "datei": "violas/60.m4a"
+        },
+        {
+          "note": 63,
+          "datei": "violas/63.m4a"
+        },
+        {
+          "note": 66,
+          "datei": "violas/66.m4a"
+        },
+        {
+          "note": 69,
+          "datei": "violas/69.m4a"
+        },
+        {
+          "note": 72,
+          "datei": "violas/72.m4a"
+        }
+      ]
+    },
+    "gitarre": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "lizenzUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "bearbeitung": "Strumstick mit den Fingern gezupft, 15 Aufnahmen von a3 bis a5. WICHTIG: die VCSL benennt die Dateien nach Griffposition, nicht nach klingender Tonhoehe - sie klingen eine Oktave hoeher als ihr Name. Hier stehen die KLINGENDEN Tonhoehen; mit den Dateinamen der Quelle klaenge jede Note eine Oktave zu hoch. Ab dem Einsatz geschnitten, auf gemeinsame Lautheit gezogen, Mono, AAC",
+      "dateien": [
+        {
+          "note": 57,
+          "datei": "zupf/57.m4a"
+        },
+        {
+          "note": 59,
+          "datei": "zupf/59.m4a"
+        },
+        {
+          "note": 61,
+          "datei": "zupf/61.m4a"
+        },
+        {
+          "note": 62,
+          "datei": "zupf/62.m4a"
+        },
+        {
+          "note": 64,
+          "datei": "zupf/64.m4a"
+        },
+        {
+          "note": 66,
+          "datei": "zupf/66.m4a"
+        },
+        {
+          "note": 67,
+          "datei": "zupf/67.m4a"
+        },
+        {
+          "note": 69,
+          "datei": "zupf/69.m4a"
+        },
+        {
+          "note": 71,
+          "datei": "zupf/71.m4a"
+        },
+        {
+          "note": 73,
+          "datei": "zupf/73.m4a"
+        },
+        {
+          "note": 74,
+          "datei": "zupf/74.m4a"
+        },
+        {
+          "note": 76,
+          "datei": "zupf/76.m4a"
+        },
+        {
+          "note": 78,
+          "datei": "zupf/78.m4a"
+        },
+        {
+          "note": 79,
+          "datei": "zupf/79.m4a"
+        },
+        {
+          "note": 81,
+          "datei": "zupf/81.m4a"
+        }
+      ],
+      "attack": 0.004
+    },
+    "horn": {
+      "quelle": "Versilian Studios Chamber Orchestra 2, Community Edition (VSCO-2-CE)",
+      "url": "https://github.com/sgossner/VSCO-2-CE",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "lizenzUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "bearbeitung": "F-Horn gehalten, dichte Notenauswahl gegen Transpositionsspruenge",
+      "dateien": [
+        {
+          "note": 34,
+          "datei": "horn/34.m4a"
+        },
+        {
+          "note": 38,
+          "datei": "horn/38.m4a"
+        },
+        {
+          "note": 41,
+          "datei": "horn/41.m4a"
+        },
+        {
+          "note": 45,
+          "datei": "horn/45.m4a"
+        },
+        {
+          "note": 48,
+          "datei": "horn/48.m4a"
+        },
+        {
+          "note": 62,
+          "datei": "horn/62.m4a"
+        },
+        {
+          "note": 65,
+          "datei": "horn/65.m4a"
+        }
+      ],
+      "gehalten": true,
+      "attack": 0.1
+    },
+    "cello": {
+      "quelle": "Sonatina Symphonic Orchestra",
+      "url": "https://github.com/peastman/sso",
+      "autor": "Mattias Westlund",
+      "lizenz": "CC Sampling Plus 1.0",
+      "lizenzUrl": "https://creativecommons.org/licenses/sampling+/1.0/",
+      "bearbeitung": "Celli gestrichen gehalten, alle drei Halbtoene eine eigene Aufnahme; ab dem Einsatz geschnitten, auf gemeinsame Lautheit gezogen, Mono, AAC",
+      "gehalten": true,
+      "attack": 0.014,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 36,
+          "datei": "celli/36.m4a"
+        },
+        {
+          "note": 39,
+          "datei": "celli/39.m4a"
+        },
+        {
+          "note": 42,
+          "datei": "celli/42.m4a"
+        },
+        {
+          "note": 45,
+          "datei": "celli/45.m4a"
+        },
+        {
+          "note": 48,
+          "datei": "celli/48.m4a"
+        },
+        {
+          "note": 51,
+          "datei": "celli/51.m4a"
+        },
+        {
+          "note": 54,
+          "datei": "celli/54.m4a"
+        },
+        {
+          "note": 57,
+          "datei": "celli/57.m4a"
+        }
+      ]
+    },
+    "hornstac": {
+      "quelle": "Versilian Studios Chamber Orchestra 2, Community Edition (VSCO-2-CE)",
+      "url": "https://github.com/sgossner/VSCO-2-CE",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "lizenzUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "bearbeitung": "F-Horn kurz gestossen",
+      "attack": 0.006,
+      "dateien": [
+        {
+          "note": 41,
+          "datei": "hornstac/41.m4a"
+        },
+        {
+          "note": 48,
+          "datei": "hornstac/48.m4a"
+        },
+        {
+          "note": 62,
+          "datei": "hornstac/62.m4a"
+        }
+      ]
+    },
+    "chor": {
+      "quelle": "Sonatina Symphonic Orchestra",
+      "url": "https://github.com/peastman/sso",
+      "autor": "Mattias Westlund",
+      "lizenz": "CC Sampling Plus 1.0",
+      "lizenzUrl": "https://creativecommons.org/licenses/sampling+/1.0/",
+      "bearbeitung": "Gemischter Chor auf 'ah', Maennerstimmen unten, Frauenstimmen ab g4; ab dem Einsatz geschnitten, auf gemeinsame Lautheit gezogen, Mono, AAC",
+      "gehalten": true,
+      "attack": 0.05,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 55,
+          "datei": "chor/55.m4a"
+        },
+        {
+          "note": 58,
+          "datei": "chor/58.m4a"
+        },
+        {
+          "note": 61,
+          "datei": "chor/61.m4a"
+        },
+        {
+          "note": 64,
+          "datei": "chor/64.m4a"
+        },
+        {
+          "note": 67,
+          "datei": "chor/67.m4a"
+        },
+        {
+          "note": 69,
+          "datei": "chor/69.m4a"
+        },
+        {
+          "note": 72,
+          "datei": "chor/72.m4a"
+        },
+        {
+          "note": 74,
+          "datei": "chor/74.m4a"
+        },
+        {
+          "note": 77,
+          "datei": "chor/77.m4a"
+        },
+        {
+          "note": 81,
+          "datei": "chor/81.m4a"
+        }
+      ]
+    },
+    "epiano": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "lizenzUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "bearbeitung": "Yamaha TX81Z, Werksklang 'FM Piano' - ein FM-E-Piano, der Rhodes-Ersatz dieser Aera und genau der Klang, aus dem Lo-Fi gemacht ist. Alle vier Halbtoene eine Aufnahme; ab dem Einsatz geschnitten, Mono, AAC",
+      "attack": 0.004,
+      "dateien": [
+        {
+          "note": 36,
+          "datei": "fmpiano/36.m4a"
+        },
+        {
+          "note": 40,
+          "datei": "fmpiano/40.m4a"
+        },
+        {
+          "note": 44,
+          "datei": "fmpiano/44.m4a"
+        },
+        {
+          "note": 48,
+          "datei": "fmpiano/48.m4a"
+        },
+        {
+          "note": 52,
+          "datei": "fmpiano/52.m4a"
+        },
+        {
+          "note": 56,
+          "datei": "fmpiano/56.m4a"
+        },
+        {
+          "note": 60,
+          "datei": "fmpiano/60.m4a"
+        },
+        {
+          "note": 64,
+          "datei": "fmpiano/64.m4a"
+        },
+        {
+          "note": 68,
+          "datei": "fmpiano/68.m4a"
+        },
+        {
+          "note": 72,
+          "datei": "fmpiano/72.m4a"
+        },
+        {
+          "note": 76,
+          "datei": "fmpiano/76.m4a"
+        },
+        {
+          "note": 80,
+          "datei": "fmpiano/80.m4a"
+        },
+        {
+          "note": 84,
+          "datei": "fmpiano/84.m4a"
+        }
+      ]
+    },
+    "vibraphon": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "lizenzUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "bearbeitung": "Vibraphon mit weichen Schlaegeln. WICHTIG: die VCSL benennt diese Aufnahmen eine Oktave unter der klingenden Tonhoehe - nachgemessen liegt die gesamte Energie eine Oktave hoeher. Hier stehen die KLINGENDEN Tonhoehen. Ab dem Einsatz geschnitten, Mono, AAC",
+      "attack": 0.004,
+      "dateien": [
+        {
+          "note": 60,
+          "datei": "vibraphon/60.m4a"
+        },
+        {
+          "note": 64,
+          "datei": "vibraphon/64.m4a"
+        },
+        {
+          "note": 67,
+          "datei": "vibraphon/67.m4a"
+        },
+        {
+          "note": 71,
+          "datei": "vibraphon/71.m4a"
+        },
+        {
+          "note": 74,
+          "datei": "vibraphon/74.m4a"
+        },
+        {
+          "note": 77,
+          "datei": "vibraphon/77.m4a"
+        },
+        {
+          "note": 81,
+          "datei": "vibraphon/81.m4a"
+        },
+        {
+          "note": 84,
+          "datei": "vibraphon/84.m4a"
+        },
+        {
+          "note": 88,
+          "datei": "vibraphon/88.m4a"
+        }
+      ]
+    },
+    "trompete": {
+      "quelle": "Versilian Studios Chamber Orchestra 2, Community Edition (VSCO-2-CE)",
+      "url": "https://github.com/sgossner/VSCO-2-CE",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Trompete gehalten, leise Dynamik; auf die ersten 2,2 s ab dem Einsatz geschnitten - der gerade Ansatz, nicht das Vibrato danach. WICHTIG: die Bibliothek benennt diesen Satz eine Oktave unter der klingenden Tonhoehe. Die Notennummern hier sind gemessen, nicht aus dem Dateinamen uebernommen.",
+      "gehalten": true,
+      "attack": 0.03,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 53,
+          "datei": "trompete/53.m4a"
+        },
+        {
+          "note": 57,
+          "datei": "trompete/57.m4a"
+        },
+        {
+          "note": 60,
+          "datei": "trompete/60.m4a"
+        },
+        {
+          "note": 63,
+          "datei": "trompete/63.m4a"
+        },
+        {
+          "note": 67,
+          "datei": "trompete/67.m4a"
+        },
+        {
+          "note": 70,
+          "datei": "trompete/70.m4a"
+        },
+        {
+          "note": 74,
+          "datei": "trompete/74.m4a"
+        },
+        {
+          "note": 77,
+          "datei": "trompete/77.m4a"
+        },
+        {
+          "note": 81,
+          "datei": "trompete/81.m4a"
+        },
+        {
+          "note": 84,
+          "datei": "trompete/84.m4a"
+        }
+      ]
+    },
+    "mundharmonika": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Hohner Super 64, Artikulation \"Accented\" - bewusst nur ZWEI Aufnahmen. Die VCSL-Saetze sind in sich nicht stimmig: der Grundtonanteil springt von Note zu Note zwischen 0 und 88 %, die gehoerbezogen lauteste Stelle zwischen 400 und 2000 Hz. Dieselbe Note klingt in \"Normal\" bei 1587 Hz am lautesten, in \"Accented\" bei 397 Hz. Ein Satz aus allen Noten wechselt deshalb bei jedem Ton den Charakter. Diese beiden passen zueinander (Teiltoene 40/29/16 und 40/25/14) und decken mit +-3 Halbtoenen den Umfang der Figur ab; eine freie Zunge hat keinen Resonanzkoerper, der beim Verschieben mitwandern koennte. C3 lag einen halben Halbton zu hoch und wurde begradigt. Notennummern gemessen, eine Oktave ueber dem Dateinamen.",
+      "gehalten": true,
+      "attack": 0.014,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 55,
+          "datei": "mundharmonika/55.m4a"
+        },
+        {
+          "note": 60,
+          "datei": "mundharmonika/60.m4a"
+        }
+      ]
+    },
+    "kontrabass": {
+      "quelle": "Versilian Studios Chamber Orchestra 2, Community Edition (VSCO-2-CE)",
+      "url": "https://github.com/sgossner/VSCO-2-CE",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Kontrabass gezupft (pizzicato), leise Dynamik; dichte Notenauswahl im tiefen Register gegen Transpositionsspruenge. WICHTIG: die Bibliothek benennt diesen Satz eine Oktave unter der klingenden Tonhoehe. Die Notennummern hier sind gemessen, nicht aus dem Dateinamen uebernommen.",
+      "gehalten": false,
+      "attack": 0.004,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 28,
+          "datei": "kontrabass/28.m4a"
+        },
+        {
+          "note": 30,
+          "datei": "kontrabass/30.m4a"
+        },
+        {
+          "note": 31,
+          "datei": "kontrabass/31.m4a"
+        },
+        {
+          "note": 34,
+          "datei": "kontrabass/34.m4a"
+        },
+        {
+          "note": 36,
+          "datei": "kontrabass/36.m4a"
+        },
+        {
+          "note": 38,
+          "datei": "kontrabass/38.m4a"
+        },
+        {
+          "note": 40,
+          "datei": "kontrabass/40.m4a"
+        },
+        {
+          "note": 42,
+          "datei": "kontrabass/42.m4a"
+        },
+        {
+          "note": 44,
+          "datei": "kontrabass/44.m4a"
+        },
+        {
+          "note": 45,
+          "datei": "kontrabass/45.m4a"
+        },
+        {
+          "note": 49,
+          "datei": "kontrabass/49.m4a"
+        },
+        {
+          "note": 52,
+          "datei": "kontrabass/52.m4a"
+        }
+      ]
+    },
+    "glocke": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Roehrenglocken, kraeftig angeschlagen, 2,8 s. Der Schlagton einer Glocke ist ein FEHLENDER Grundton - die Teiltoene liegen bei 2:3:4:5 darueber. Die Notennummern sind aus dieser Reihe erschlossen, eine Oktave ueber dem Dateinamen.",
+      "gehalten": true,
+      "attack": 0.002,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 60,
+          "datei": "glocke/60.m4a"
+        },
+        {
+          "note": 64,
+          "datei": "glocke/64.m4a"
+        },
+        {
+          "note": 68,
+          "datei": "glocke/68.m4a"
+        },
+        {
+          "note": 72,
+          "datei": "glocke/72.m4a"
+        },
+        {
+          "note": 76,
+          "datei": "glocke/76.m4a"
+        }
+      ]
+    },
+    "maennerchor": {
+      "quelle": "Sonatina Symphonic Orchestra",
+      "url": "https://github.com/peastman/sso",
+      "autor": "Mattias Westlund",
+      "lizenz": "CC Sampling Plus 1.0",
+      "lizenzUrl": "https://creativecommons.org/licenses/sampling+/1.0/",
+      "bearbeitung": "Maennerchor auf \"ah\", alle drei Halbtoene eine eigene Aufnahme von G2 bis E4; ab dem Einsatz geschnitten, auf gemeinsame Lautheit gezogen, Mono, AAC. Nicht der vorhandene Chor eine Oktave tiefer gespielt - das waere ein verlangsamter Frauenchor und klaenge nach Spukhaus.",
+      "gehalten": true,
+      "attack": 0.045,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 43,
+          "datei": "maennerchor/43.m4a"
+        },
+        {
+          "note": 46,
+          "datei": "maennerchor/46.m4a"
+        },
+        {
+          "note": 49,
+          "datei": "maennerchor/49.m4a"
+        },
+        {
+          "note": 52,
+          "datei": "maennerchor/52.m4a"
+        },
+        {
+          "note": 55,
+          "datei": "maennerchor/55.m4a"
+        },
+        {
+          "note": 58,
+          "datei": "maennerchor/58.m4a"
+        },
+        {
+          "note": 61,
+          "datei": "maennerchor/61.m4a"
+        },
+        {
+          "note": 64,
+          "datei": "maennerchor/64.m4a"
+        }
+      ]
+    },
+    "klavier": {
+      "quelle": "Versilian Community Sample Library (VCSL)",
+      "url": "https://github.com/sgossner/VCSL",
+      "autor": "Versilian Studios LLC",
+      "lizenz": "CC0 1.0",
+      "bearbeitung": "Upright Piano Yamaha ('Upright No. 1'), mittlere Anschlagstaerke (vl2), ab dem Einsatz geschnitten auf 3 s mit Ausblendung, Mono, AAC. WICHTIG: die VCSL benennt auch diese Dateien eine Oktave unter der klingenden Tonhoehe. Nicht geraten, sondern nachgemessen: die Bandenergie am vermuteten Grundton wurde gegen die Oktave darueber und darunter geprueft, und sie liegt durchweg zwei- bis dreistellig ueber beiden Alternativen. Hier stehen die KLINGENDEN Tonhoehen.",
+      "gehalten": true,
+      "attack": 0.002,
+      "breite": 0,
+      "dateien": [
+        {
+          "note": 36,
+          "datei": "klavier/36.m4a"
+        },
+        {
+          "note": 43,
+          "datei": "klavier/43.m4a"
+        },
+        {
+          "note": 48,
+          "datei": "klavier/48.m4a"
+        },
+        {
+          "note": 55,
+          "datei": "klavier/55.m4a"
+        },
+        {
+          "note": 60,
+          "datei": "klavier/60.m4a"
+        },
+        {
+          "note": 67,
+          "datei": "klavier/67.m4a"
+        },
+        {
+          "note": 72,
+          "datei": "klavier/72.m4a"
+        },
+        {
+          "note": 79,
+          "datei": "klavier/79.m4a"
+        }
+      ]
+    }
+  }
+}

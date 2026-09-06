@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3c2e49">
+  <!-- Die Seite selbst nie aus dem Cache: sonst zeigt der Browser eine alte
+       index.html und damit alte Skriptversionen, obwohl die Dateien laengst
+       neu sind. Die Skripte darunter tragen zusaetzlich eine Version. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta name="description" content="Retrovibes ist eine Pixel-Groovebox für Beats und kleine Songs.">
+  <title>Retrovibes</title>
+  <link rel="stylesheet" href="styles.css?v=141">
+  <link rel="stylesheet" href="css/intro-rooftop.css?v=141">
+</head>
+<body>
+<div class="app">
+  <section class="pick" id="screenPick" aria-label="Retrovibes Stilwahl">
+    <div class="intro-rooftop" id="introRooftop" aria-hidden="true">
+      <img class="intro-rooftop__layer intro-rooftop__back" src="assets/intro-rooftop/back_riso.png" width="1672" height="944" alt="" draggable="false" loading="eager" decoding="async" fetchpriority="high">
+      <img class="intro-rooftop__layer intro-rooftop__moon" src="assets/intro-rooftop/moon_riso.png" width="264" height="312" alt="" draggable="false" loading="eager" decoding="async">
+      <img class="intro-rooftop__layer intro-rooftop__middle" src="assets/intro-rooftop/middle_riso.png" width="1881" height="87" alt="" draggable="false" loading="eager" decoding="async">
+      <img class="intro-rooftop__layer intro-rooftop__front" src="assets/intro-rooftop/front_riso.png" width="1881" height="150" alt="" draggable="false" loading="eager" decoding="async">
+    </div>
+    <div class="pick-head">
+      <h1 class="logo">RETROVIBES</h1>
+    </div>
+    <div class="genres" id="genreGrid" aria-label="Musikstil auswählen"></div>
+    <p class="pick-foot">Kopfhörer empfohlen</p>
+  </section>
+
+  <section class="mix" id="screenMix" hidden>
+    <header class="bar">
+      <div class="brand">
+        <div class="brandzeile">
+          <span class="logo">RETROVIBES</span>
+          <span class="gchip" id="genreChip">&mdash;</span>
+        </div>
+        <b class="weltnote" id="weltNote" hidden></b>
+      </div>
+      <button class="btn play" id="playBtn" data-hint="<b>Play</b> startet den Loop. Geht auch mit der Leertaste.">&#9654; PLAY</button>
+      <!-- Nur Welten mit `songarten` fuellen das (bisher: Game Boy). Es steht
+           bewusst hier neben PLAY und nicht in der Weltenuebersicht: die
+           Songart ist eine Entscheidung beim Bauen, keine beim Aussuchen. -->
+      <div class="songarten" id="songArten" role="group" aria-label="Songart" hidden></div>
+      <label class="ctl" data-hint="<b>Tempo</b> in Schlägen pro Minute. Unter 90 wird es schleppend, über 150 hektisch.">BPM
+        <input type="range" id="bpm" min="60" max="180" step="1"><output id="bpmOut">128</output></label>
+      <label class="ctl" data-hint="<b>Swing</b> verschiebt jeden zweiten Schritt nach hinten. Wenig = maschinell, viel = groovig schief.">SWING
+        <input type="range" id="swing" min="0" max="60" step="1"><output id="swingOut">0%</output></label>
+      <label class="ctl" data-hint="<b>Gesamtlautstärke</b> aller Figuren zusammen.">VOL
+        <input type="range" id="master" min="0" max="100" step="1"><output id="masterOut">80</output></label>
+      <button class="btn ghost" id="expBtn" data-hint="Song oder Projekt sichern.">Sichern</button>
+      <button class="btn ghost" id="helpBtn" data-hint="Kurze Spielhilfe.">Hilfe</button>
+      <button class="btn ghost" id="resetBtn" data-hint="Diesen Mix neu anfangen.">Neu</button>
+      <button class="btn ghost" id="backBtn" data-hint="Eine andere Welt wählen.">Welten</button>
+    </header>
+
+    <div class="work">
+      <aside class="roster" id="roster" aria-label="Figuren"></aside>
+      <main class="stage">
+        <canvas class="stagedruck" id="stageDruck" aria-hidden="true"></canvas>
+        <div class="stageregen" id="stageRegen" aria-hidden="true" hidden></div>
+        <div class="stagesterne" id="stageSterne" aria-hidden="true" hidden></div>
+        <div class="stagekorn" aria-hidden="true"></div>
+        <div class="slots" id="slots"></div>
+        <div class="stagefloor"></div>
+      </main>
+      <aside class="insp" id="insp" aria-label="Klangregler"></aside>
+    </div>
+
+    <section class="tl">
+      <div class="tl-top">
+        <h2>BEATRASTER &middot; 16 SCHRITTE</h2>
+        <!-- Ziel aller hint()-Aufrufe: wechselnde Tipps, Rueckfragen und
+             Rueckmeldungen. Das Element fehlte, damit lief hint() ins Leere
+             und die halbe Bedienfuehrung der App war unsichtbar. -->
+        <p class="hinweis" id="hintText" aria-live="polite"></p>
+        <p class="legend"><b>Tippen</b> = an/aus &nbsp;&middot;&nbsp; <b>Ziehen</b> = Höhe</p>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="tl-scroll">
+        <div class="grid tl-nums" id="tlNums"></div>
+        <div id="tlRows"></div>
+        <p class="tl-empty" id="tlEmpty">Dieser Takt ist leer. Wähl eine Figur.</p>
+      </div>
+    </section>
+
+  </section>
+</div>
+
+<!-- Quer ist die richtige Haltung: Buehne und Beatraster brauchen Breite,
+     und das Raster hat 16 Spalten, die hochkant zu Streifen werden.
+     Bewusst kein harter Riegel - wer sein Geraet gesperrt hat oder es nicht
+     drehen kann, kommt mit einem Tipp trotzdem weiter. -->
+<div class="dreh" id="drehHinweis" role="dialog" aria-labelledby="drehTitel">
+  <div class="dreh__box">
+    <div class="dreh__geraet" aria-hidden="true"><i></i></div>
+    <p class="dreh__titel logo" id="drehTitel">Bitte dreh dein Gerät</p>
+    <p class="dreh__text">Retrovibes braucht die Breite &ndash; für die Bühne und für die 16 Schritte im Beatraster.</p>
+    <button class="btn ghost dreh__weiter" id="drehWeiter" type="button">Trotzdem hochkant</button>
+  </div>
+</div>
+
+  <script src="js/riso.js?v=141"></script>
+  <script src="js/sprites.js?v=141"></script>
+  <script src="js/genres.js?v=141"></script>
+  <script src="js/pixel-art.js?v=141"></script>
+  <script src="js/samples.js?v=141"></script>
+  <script src="js/audio-engine.js?v=141"></script>
+  <script src="js/song-state.js?v=141"></script>
+  <script src="js/ui.js?v=141"></script>
+  <script src="js/inspector.js?v=141"></script>
+  <script src="js/export.js?v=141"></script>
+  <script src="js/intro-rooftop.js?v=141"></script>
+  <script src="js/logo-print.js?v=141"></script>
+  <script src="js/app.js?v=141"></script>
+</body>
+</html>

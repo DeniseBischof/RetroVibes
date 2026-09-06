@@ -1,0 +1,105 @@
+/* Kulisse der Weltwahl - gedruckt, nicht gerendert.
+   Die drei Bilder liegen als Risodruck vor (tools/riso_scenery.py):
+   Indigo und Riso-Burgundy auf demselben Creme-Papier wie die Karten.
+
+   Vier Ebenen: der Himmel wird ueber das ganze Fenster gezogen, Mond
+   und die beiden Silhouetten liegen als eigene Ebenen darauf. Vorher
+   hing alles gemeinsam am unteren Rand - dabei lief der Himmel oben
+   aus dem Bild und schnitt den Mond ab. */
+
+.pick {
+  position: relative;
+  isolation: isolate;
+  background: #3c2e49;
+}
+
+.pick > .pick-head,
+.pick > .genres,
+.pick > .pick-foot {
+  position: relative;
+  z-index: 3;
+}
+
+.intro-rooftop {
+  --scene-width: 2090px;
+  --scene-left: calc(50% - 1045px);
+  --middle-bottom: 0px;
+  --moon-size: 34px;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #3c2e49;
+  contain: layout paint style;
+}
+
+/* Papierkorn ueber die ganze Kulisse, damit Himmel und Karten
+   dieselbe Oberflaeche haben. */
+.intro-rooftop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background-image: url("../assets/intro-rooftop/grain.png");
+  background-size: 128px 128px;
+  opacity: .22;
+  mix-blend-mode: multiply;
+}
+
+.intro-rooftop__layer {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+  transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+  /* Der Druck ist ein Raster, kein Pixelraster: weich skalieren, sonst
+     zerfaellt es beim Hochziehen in ungleiche Punkte. */
+  image-rendering: auto;
+}
+
+/* Himmel: wird auf das ganze Fenster gezogen, Breite wie Hoehe.
+   Mit `cover` schnitt bei breiten Fenstern der komplette
+   Sonnenuntergang unten weg und uebrig blieb flache Nacht. Der Verlauf
+   ist senkrecht, das Dehnen sieht man ihm nicht an - nur der Mond
+   waere oval geworden, der liegt darum als eigene Ebene daneben. */
+.intro-rooftop__back {
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* Ausgespartes Papier im Nachthimmel. Weit genug nach aussen, dass er
+   neben dem Kartenraster steht und nicht dahinter verschwindet. */
+.intro-rooftop__moon {
+  z-index: 1;
+  left: calc(88% - var(--moon-size) / 2);
+  top: calc(11% - var(--moon-size) * 0.59);
+  width: var(--moon-size);
+  height: auto;
+}
+
+.intro-rooftop__middle,
+.intro-rooftop__front {
+  left: var(--scene-left);
+  width: var(--scene-width);
+  height: auto;
+  transform-origin: bottom left;
+}
+
+/* Die ferne Stadt steht auf der Dachflaeche, nicht auf dem
+   Fensterrand - sonst verschwindet sie ganz hinter dem Dach. */
+.intro-rooftop__middle { z-index: 2; bottom: var(--middle-bottom); }
+.intro-rooftop__front { z-index: 3; bottom: -6px; }
+
+.intro-rooftop.is-moving .intro-rooftop__layer {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-rooftop__layer {
+    transform: none !important;
+  }
+}

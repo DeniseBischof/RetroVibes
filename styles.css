@@ -1,0 +1,724 @@
+/* Plakatschrift der Oberflaeche. Liegt eingedampft im Projekt
+   (assets/fonts/oswald-latein.ttf, SIL OFL 1.1, Lizenz daneben) - nichts
+   wird aus dem Netz nachgeladen, die Seite muss offline laufen.
+   Neu erzeugen: python tools/subset_font.py
+
+   Eine schmale Groteske mit Gewichtsachse. Vorher lief alles Grosse auf
+   der System-Monospace: die ist auf gleiche Zeichenbreite ausgelegt,
+   nicht auf Plakat, und sah entsprechend nach Terminal aus. */
+@font-face {
+  font-family: "Oswald";
+  src: url("assets/fonts/oswald-latein.ttf") format("truetype-variations"),
+       url("assets/fonts/oswald-latein.ttf") format("truetype");
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Schmalschriften als Rueckfall, falls die Datei fehlt - Arial Narrow
+     auf Windows, Avenir Next Condensed auf Mac. */
+  --display: "Oswald", "Arial Narrow", "Avenir Next Condensed", system-ui, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --bg: #171426; --bg2: #211c33; --panel: #fff7e3; --panel2: #eadfc4; --sunk: #0f0d19;
+  --line: #332b4c; --line2: #5d5279; --ink: #fff8e8; --ink2: #d9d0e6; --muted: #aaa1ba;
+  --paper-ink: #221c34; --paper-muted: #6d657a; --ac: #ff5b7f; --ac2: #35d6d0;
+  --good: #72de9b; --warn: #ffc857; --world1: #1a1030; --world2: #0d1226;
+  --hard-shadow: 6px 6px 0 #090710;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { background: var(--bg); }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none;
+  /* Die Figuren sind Canvas - Safari haelt sie fuer Bilder und bietet beim
+     langen Druck "Bild sichern" an. Ausgerechnet auf dem leeren Platz, wo
+     der lange Druck eigentlich das Ziehen starten wuerde. Dasselbe gilt fuer
+     die Auswahl-Lupe beim Ziehen im Beatraster. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; user-select: none;
+}
+/* Lesbares bleibt lesbar: Hilfe, Sichern-Dialog und Eingabefelder muss man
+   markieren und kopieren koennen - dort steht der Projekttext zum Weitergeben. */
+.help, input, textarea { -webkit-user-select: text; user-select: text; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--ac2); outline-offset: 3px; }
+[hidden] { display: none !important; }
+.logo, .gcard h3, .gchip, .rlabel, .tl-top h2, .bars .lab, .insp h2, .knob label {
+  font-family: var(--display);
+  /* Oswald geht bis 700 - 900 liesse den Browser kuenstlich fetten. */
+  font-weight: 700; text-transform: uppercase;
+}
+
+/* Weltwahl */
+.pick {
+  min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 18px;
+  padding: max(18px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255,91,127,.18) 0 4px, transparent 5px),
+    radial-gradient(circle at 84% 78%, rgba(53,214,208,.15) 0 5px, transparent 6px),
+    radial-gradient(900px 520px at 50% -10%, #392c55 0%, transparent 72%), var(--bg);
+  background-size: 84px 84px, 112px 112px, auto, auto;
+}
+.pick-head { max-width: 720px; text-align: center; }
+.logo {
+  margin: 0; font-size: clamp(42px, 6.6vw, 66px); line-height: .92; letter-spacing: .015em;
+  position: relative;
+  /* Ueberdruck aus zwei versetzten Platten. Bleibt stehen, solange
+     js/logo-print.js den gerasterten Druck nicht fertig hat - oder
+     wenn es gar nicht laeuft. */
+  color: #f6ecd6;
+  text-shadow:
+     4px  4px 0 #914e72,
+    -3px -3px 0 rgba(74,74,122,.92);
+}
+/* Steht der gerasterte Druck, wird die echte Schrift durchsichtig.
+   Sie bleibt im Dokument: markierbar, durchsuchbar, vorlesbar. */
+.logo.ist-gedruckt { color: transparent; text-shadow: none; }
+.logo__druck { position: absolute; pointer-events: none; }
+
+.lede { margin: 20px 0 0; color: var(--ink2); font-size: clamp(18px, 2.2vw, 24px); font-weight: 750; }
+.genres { width: min(1120px, 100%); display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+.gcard {
+  --tilt: -.5deg; position: relative; overflow: hidden; min-height: 262px; padding: 0;
+  color: var(--paper-ink); text-align: left; background: var(--panel); border: 3px solid #3c2e49;
+  border-radius: 10px; box-shadow: 6px 6px 0 #3c2e49; transform: rotate(var(--tilt));
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.gcard:nth-child(even) { --tilt: .55deg; }
+.gcard:hover, .gcard:focus-visible { transform: translate(-3px,-3px) rotate(0); box-shadow: 10px 10px 0 #3c2e49; }
+/* Der Streifen ist gedruckt, nicht verlaufen: volle erste Farbe, die
+   zweite als Rasterpunkte darueber - so legt ein Riso zwei Farben. */
+.gcard .strip {
+  height: 11px;
+  background:
+    radial-gradient(circle at 50% 50%, var(--gac2) 1.7px, transparent 1.8px) 0 0/6px 6px,
+    var(--gac);
+}
+/* Die Bildflaeche ist ein Risodruck: in Geraetepixeln gezeichnet und
+   weich skaliert. `pixelated` wuerde das Raster zerhacken.
+   Hoehe muss zu CARD_ART_H in js/ui.js passen. */
+.gcard canvas { display: block; width: 100%; height: 158px; object-fit: cover; image-rendering: auto; }
+.gcard .meta { min-height: 76px; padding: 12px 16px 14px; border-top: 3px solid #3c2e49; }
+.gcard h3 { margin: 0; color: var(--paper-ink); font-size: 20px; letter-spacing: .02em; }
+.gcard p { margin: 7px 0 0; color: var(--paper-muted); font-size: 14px; font-weight: 650; }
+.gcard .bpm {
+  display: inline-block; margin-top: 10px; padding: 3px 8px; color: var(--paper-ink);
+  border: 2px solid color-mix(in srgb, var(--gac) 56%, #221c34);
+  background: color-mix(in srgb, var(--gac) 12%, white);
+  font: 600 13px/1.3 var(--display);
+}
+/* Steht auf der dunklen Dachsilhouette. Als blosser Text ging er dort
+   unter - jetzt ist er ein kleines gedrucktes Schild wie die Karten. */
+.pick-foot {
+  align-self: center; margin: 0; padding: 4px 12px;
+  color: var(--paper-ink); background: var(--panel);
+  border: 2px solid #3c2e49; box-shadow: 3px 3px 0 #3c2e49;
+  font-size: 13px; font-weight: 700; text-align: center;
+}
+
+/* Editor */
+.mix { height: 100vh; height: 100dvh; min-height: 620px; display: flex; flex-direction: column; overflow: hidden; }
+.bar {
+  z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 10px 13px; min-height: 66px;
+  padding: max(8px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
+  background: var(--bg2); border-bottom: 3px solid #090710;
+}
+/* Zwei Zeilen: Name oben, Kanalhinweis darunter. Nebeneinander passte
+   der Satz nicht - die Kopfleiste hat bei 1280 px nur 1252 px, und er
+   wurde abgeschnitten. In der Hoehe ist dagegen Platz frei. */
+.brand { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin-right: auto; }
+.brandzeile { display: flex; align-items: center; gap: 10px; }
+.brandzeile .logo { font-size: 20px; color: #f6ecd6; text-shadow: 2px 2px 0 #914e72, -1px -1px 0 rgba(74,74,122,.9); }
+.gchip {
+  max-width: 160px; overflow: hidden; padding: 5px 9px; color: var(--ac); border: 2px solid var(--ac);
+  font-size: 12px; line-height: 1; letter-spacing: .05em; text-overflow: ellipsis; white-space: nowrap;
+}
+.btn {
+  min-height: 44px; padding: 8px 14px; color: var(--ink); background: #2b2540;
+  border: 2px solid var(--line2); border-radius: 7px; box-shadow: 3px 3px 0 #090710;
+  font: 600 15px/1.1 var(--display); letter-spacing: .03em;
+  transition: transform .08s ease, border-color .1s ease;
+}
+.btn:hover { border-color: var(--ac); transform: translate(-1px,-1px); }
+.btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #090710; }
+.btn.ghost { min-height: 44px; background: transparent; border-color: var(--line2); box-shadow: none; }
+.btn.play {
+  min-width: 126px; min-height: 48px; color: #171426; background: var(--ac); border-color: #090710;
+  font: 700 15px/1 var(--display); letter-spacing: .04em;
+}
+.btn.play.on { background: var(--good); }
+/* Songart: drei Fassungen desselben Songs, nur in Welten mit `songarten`.
+   Sie steht neben PLAY, weil sie zum Bauen gehoert - und sie muss klein
+   bleiben: die Kopfleiste hat bei 1280 px keine 250 px uebrig. Daher
+   11 px Schrift, niedrige Knoepfe und ein Rahmen um die Gruppe, damit die
+   drei als eine Entscheidung gelesen werden und nicht als drei Knoepfe. */
+.songarten {
+  display: flex; align-items: center; gap: 3px; padding: 3px;
+  border: 2px solid var(--line2); border-radius: 8px;
+}
+.songarten[hidden] { display: none; }
+/* Die Beschriftung kostet 55 px und die hat die Kopfleiste erst ab 1400 px
+   uebrig - gemessen: bei 1280 px bleiben fuer Songart und die drei Regler
+   zusammen 512 px. Darunter tragen sich die drei Woerter selbst. */
+@media (min-width: 1400px) {
+  .songarten::before {
+    content: 'SONGART'; padding: 0 5px 0 3px; color: var(--muted);
+    font: 500 10px/1 var(--display); letter-spacing: .08em;
+  }
+}
+.songart {
+  min-height: 32px; padding: 6px 8px; color: var(--muted); background: transparent;
+  border: 2px solid transparent; border-radius: 5px;
+  font: 600 11px/1 var(--display); letter-spacing: .03em; white-space: nowrap;
+}
+.songart:hover { color: var(--ink); border-color: var(--ac2); }
+.songart.on { color: #171426; background: var(--ac); border-color: #090710; }
+/* Die Gruppe nimmt rund 185 px, und die hat die Leiste nicht einfach so:
+   sie kommen aus engeren Abstaenden, schmaleren Knoepfen und kuerzeren
+   Reglern. Nur in Welten mit Songart, sonst bleibt alles wie es war. */
+.bar.mit-songart { gap: 9px; }
+.bar.mit-songart .btn.ghost { padding-inline: 10px; }
+.bar.mit-songart .ctl input[type="range"] { width: 68px; }
+.btn.warn { color: #fff; background: #c53a5d; border-color: #c53a5d; }
+.btn.on { color: #171426; background: var(--ac); border-color: #171426; }
+.btn.on.solo { background: var(--warn); }
+/* Die Kopfleiste braucht auf 1280 px genau ihre 1252 px - sie kippte
+   bei jedem laengeren Weltnamen ("8-Bit Arcade") in eine zweite Zeile.
+   Statt weiter Pixel abzuschaben duerfen die Regler jetzt schrumpfen:
+   `flex: 0 1 auto` und `min-width: 0` geben dem Umbruch etwas zu
+   holen, bevor er eine Zeile aufmacht. */
+.ctl {
+  flex: 0 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 7px; min-height: 42px; color: var(--muted);
+  font: 500 12px/1 var(--display); letter-spacing: .06em;
+}
+.ctl input[type="range"] { flex: 0 1 auto; min-width: 52px; }
+/* Der Weltname kuerzt sich lieber, als die Leiste zu sprengen. */
+.brand { min-width: 0; }
+.gchip { flex: 0 1 auto; }
+.ctl output { min-width: 32px; color: var(--ink); font: 600 15px/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
+input[type="range"] {
+  width: 108px; height: 44px; margin: 0; padding: 0; appearance: none; -webkit-appearance: none;
+  background: transparent; touch-action: pan-y;
+}
+input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: var(--sunk); border: 2px solid var(--line2); }
+input[type="range"]::-moz-range-track { height: 8px; background: var(--sunk); border: 2px solid var(--line2); }
+input[type="range"]::-webkit-slider-thumb {
+  width: 22px; height: 28px; margin-top: -12px; appearance: none; -webkit-appearance: none;
+  background: var(--ac); border: 2px solid #090710; border-radius: 3px; box-shadow: 2px 2px 0 #090710;
+}
+input[type="range"]::-moz-range-thumb { width: 22px; height: 28px; background: var(--ac); border: 2px solid #090710; border-radius: 3px; }
+.work { min-height: 0; flex: 1; display: grid; grid-template-columns: 232px minmax(0,1fr) 286px; background: var(--bg); }
+.work > * { min-height: 0; overflow: auto; }
+
+/* Figurenkiste */
+.roster {
+  padding: 12px; color: var(--paper-ink); background: var(--panel); border-right: 3px solid #090710;
+  scrollbar-color: var(--ac) var(--panel2);
+}
+/* Erklaert die Kanalgrenze - oben neben dem Weltnamen, wo man
+   hinschaut. In der Figurenliste stand es zu weit unten. Schrumpft als
+   erstes, wenn die Kopfleiste eng wird; der volle Text haengt am
+   title-Attribut. */
+.weltnote {
+  max-width: 100%; overflow: hidden;
+  color: var(--ink2); font: 700 12px/1.1 var(--display); letter-spacing: .02em;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.rlabel { display: flex; align-items: center; gap: 8px; margin: 17px 0 8px; color: var(--paper-muted); font-size: 12px; font-weight: 500; letter-spacing: .13em; }
+.rlabel:first-child { margin-top: 2px; }
+.rlabel::after { content: ""; flex: 1; height: 2px; background: #cfc3aa; }
+.rlabel i { width: 10px; height: 10px; flex: none; background: var(--c); border: 2px solid var(--paper-ink); }
+.rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.rchar {
+  position: relative; min-width: 0; min-height: 94px; overflow: hidden; padding: 7px 5px 6px;
+  color: var(--paper-ink); text-align: center; background: #fffdf5; border: 2px solid #b9ad97;
+  border-radius: 7px; box-shadow: 2px 2px 0 #c8bca5;
+}
+.rchar:hover { border-color: var(--c); }
+.rchar canvas { display: block; margin: 0 auto; image-rendering: pixelated; }
+.rchar span { display: block; margin-top: 4px; overflow: hidden; color: var(--paper-ink); font-size: 11px; font-weight: 750; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.rchar.used { opacity: .5; filter: saturate(.55); }
+.rchar.used::after {
+  content: "IN TAKT"; position: absolute; inset: 0 0 auto; padding: 2px 3px; color: #151223;
+  background: var(--c); font: 700 9px/1.2 var(--display); letter-spacing: .05em;
+}
+
+/* Sticker-Bühne */
+.stage {
+  position: relative; display: flex; flex-direction: column; overflow: hidden !important;
+  /* Grundton, bis der Druck steht. Der Verlauf mit den zwei Lichtkegeln
+     ist raus - das war Bildschirm, keine Druckflaeche. */
+  background: #3c2e49;
+}
+/* Fallender Regen. Die Flaeche wird einmal gedruckt (regenKachel in
+   js/ui.js) und danach nur noch gescrollt - kein Zeichnen pro Bild.
+   Der Weg pro Runde ist genau eine Kachel, waagerecht die Haelfte:
+   das ist die Schraege der Striche, damit sie in ihrer eigenen
+   Richtung fallen und nicht seitlich wegrutschen.
+   Kachelgroesse und Weg muessen zu REGEN_KACHEL in js/ui.js passen. */
+.stageregen {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-repeat: repeat; background-size: 120px 120px;
+  animation: regenfall 1s steps(1) infinite;
+}
+/* Der Regen gleitet nicht, er wird neu gesetzt: fuenfmal je Sekunde
+   springt die Flaeche auf eine andere Stelle der Kachel. Das sieht aus
+   wie ein Blatt, das immer wieder neu durch die Presse geht - ein
+   gleitender Verlauf sah nach Bildschirm aus, nicht nach Druck. */
+@keyframes regenfall {
+  0%   { background-position:   0px   0px; }
+  20%  { background-position:  67px  41px; }
+  40%  { background-position:  23px  86px; }
+  60%  { background-position:  94px  13px; }
+  80%  { background-position:  41px  59px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stageregen { animation: none; }
+}
+
+/* Funkelnde Sterne (js/ui.js, setzeSterne): ein Punkt je Stern, jeder
+   pulst in eigenem Takt. Liegt zwischen Druck und Regen. */
+/* Ebene 0, also direkt ueber dem gedruckten Hintergrund und UNTER den
+   Figuren (Ebene 1) - Sterne stehen am Himmel, nicht vor den Leuten.
+   Sie lagen vorher auf Ebene 2 und damit schon immer vor den Figuren; das
+   fiel nur nicht auf, solange sie kaum sichtbar waren.
+   Kurz standen sie auf 5, um dem Korn zu entgehen (das multipliziert mit
+   0,4 und schluckt einen Teil des Funkelns). Falscher Handel: das Korn
+   liegt ueber dem ganzen Druck, so sieht gedrucktes Papier nun mal aus -
+   die Sterne davon auszunehmen macht sie zu Aufklebern. Der Verlust wird
+   stattdessen im Funkeln selbst ausgeglichen, ueber den Schein. */
+.stagesterne { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.stagesterne i {
+  position: absolute; display: block; border-radius: 1px;
+  background: var(--ton, currentColor);
+  animation: funkeln 2.4s ease-in-out infinite;
+}
+/* Der Schein macht den Unterschied. Ein 3-px-Punkt kann nicht heller
+   werden, dafuer deckt er zu wenig Flaeche - sichtbar wird ein Funkeln
+   erst, wenn der Punkt auf dem Hoehepunkt kurz ausblueht und damit
+   GROESSER wird. Farbe aus --ton, also aus der Druckfarbe der Welt. */
+@keyframes funkeln {
+  0%, 100% { opacity: .12; transform: scale(.7);  box-shadow: 0 0 0 0 transparent; }
+  50%      { opacity: 1;   transform: scale(1.7); box-shadow: 0 0 9px 3px var(--ton); }
+}
+/* Jeder siebte steht lange still und blitzt nur kurz auf - ohne das
+   atmen alle gemeinsam, und ein Himmel, der gemeinsam atmet, blinkt. */
+@keyframes blitzen {
+  0%, 74%, 100% { opacity: .10; transform: scale(.7); box-shadow: 0 0 0 0 transparent; }
+  84%           { opacity: 1;   transform: scale(2.1); box-shadow: 0 0 10px 3px var(--ton); }
+}
+.stagesterne i.blitz { animation-name: blitzen; }
+@media (prefers-reduced-motion: reduce) {
+  .stagesterne i { animation: none; opacity: .7; }
+}
+
+/* Leichtes Korn ueber der ganzen Buehne. Bewusst als CSS-Animation
+   mit `steps()`: das Korn springt fuenfmal je Sekunde auf eine andere
+   Stelle der Kachel, ruckweise wie ein Druck - und kostet kein
+   einziges gezeichnetes Bild. */
+.stagekorn {
+  position: absolute; inset: -64px; z-index: 4; pointer-events: none;
+  background: url("assets/intro-rooftop/grain.png") 0 0/128px 128px repeat;
+  opacity: .4; mix-blend-mode: multiply;
+  animation: kornwandern 1.2s steps(1) infinite;
+}
+@keyframes kornwandern {
+  0%   { transform: translate(0, 0); }
+  17%  { transform: translate(-37px, 19px); }
+  34%  { transform: translate(23px, -41px); }
+  50%  { transform: translate(-11px, -13px); }
+  67%  { transform: translate(44px, 29px); }
+  84%  { transform: translate(-29px, 37px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stagekorn { animation: none; }
+}
+
+/* Die gedruckte Kulisse, gezeichnet in js/ui.js (paintStagePrint). */
+.stagedruck {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; pointer-events: none;
+}
+.coach {
+  z-index: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 12px 14px 0;
+  padding: 9px 12px; color: var(--paper-ink); background: var(--panel); border: 3px solid #3c2e49;
+  border-radius: 7px; box-shadow: 4px 4px 0 #090710; font-size: 14px;
+}
+.coach b { color: #be2e58; font: 700 12px/1 var(--display); letter-spacing: .04em; }
+.coach strong { display: inline-grid; width: 23px; height: 23px; place-items: center; color: #171426; background: var(--ac2); border: 2px solid #171426; border-radius: 50%; }
+.coach button { min-height: 44px; margin-left: auto; padding: 5px 11px; color: var(--paper-ink); background: var(--panel2); border: 2px solid var(--paper-ink); border-radius: 5px; font: 600 14px/1 var(--display); }
+.slots { z-index: 1; flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-wrap: wrap; gap: 7px; padding: 18px 14px 2px; }
+.slot { position: relative; width: 110px; min-height: 158px; display: flex; align-items: stretch; justify-content: flex-end; flex-direction: column; }
+.slot-select {
+  width: 100%; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  gap: 5px; padding: 0 3px 9px; color: var(--ink); background: transparent; border: 0;
+}
+.slot canvas { display: block; image-rendering: pixelated; }
+.slot .nameplate {
+  width: 100%; min-height: 30px; padding: 5px 4px; overflow: hidden; color: var(--paper-ink);
+  background: var(--panel); border: 2px solid #0c0916; border-top: 6px solid var(--c); border-radius: 4px;
+  box-shadow: 3px 3px 0 #090710; font-size: 11px; font-weight: 800; line-height: 1.15;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.slot.sel .nameplate { background: color-mix(in srgb, var(--c) 20%, var(--panel)); }
+.slot .kill {
+  position: absolute; top: -16px; right: -20px; z-index: 3; width: 44px; height: 44px; padding: 0;
+  color: var(--paper-ink); background: var(--panel); border: 2px solid #0c0916; border-radius: 50%;
+  box-shadow: 2px 2px 0 #090710; font-size: 17px; font-weight: 900; opacity: 0; transition: opacity .1s ease;
+}
+.slot:hover .kill, .slot:focus-within .kill { opacity: 1; }
+.slot .kill:hover { color: #fff; background: #c53a5d; }
+.slot.muted canvas { opacity: .32; filter: grayscale(1); }
+/* Liegt auf der gedruckten Kulisse, nicht mehr auf dunklem Grund:
+   heller Rahmen und helle Schrift waren dort nicht zu sehen. */
+.slot.empty {
+  min-height: 150px; align-items: center; justify-content: center; color: #3c2e49;
+  border: 3px dashed #3c2e49; border-radius: 9px; background: rgba(246,236,214,.62);
+}
+.slot.empty em { font-style: normal; font-size: 30px; font-weight: 300; }
+.slot.empty span { margin-top: 5px; font: 600 11px/1.3 var(--display); letter-spacing: .05em; text-align: center; }
+.slot.empty.drop { background: rgba(246,236,214,.92); border-color: var(--riso2, #3c2e49); }
+/* Der Boden wird jetzt mitgedruckt - das Element haelt nur noch den
+   Platz frei und markiert die Hoehe, auf der die Figuren stehen. */
+.stagefloor { z-index: 1; height: 18px; margin: 0 14px; }
+
+/* Klangregler */
+.insp { padding: 14px; color: var(--paper-ink); background: var(--panel); border-left: 3px solid #090710; scrollbar-color: var(--ac) var(--panel2); }
+.insp h2 { margin: 0 0 3px; color: var(--c); font-size: 18px; font-weight: 700; letter-spacing: .01em; }
+.insp .sub { margin: 0 0 12px; color: var(--paper-muted); font-size: 12px; font-weight: 650; }
+.rowbtns { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0 16px; }
+.rowbtns .btn { min-height: 44px; padding: 6px 11px; color: var(--paper-ink); background: #fffdf5; border-color: #8f829f; box-shadow: 2px 2px 0 #c8bca5; font-size: 13px; }
+.rowbtns .btn.on { color: #171426; background: var(--ac); border-color: #171426; }
+.rowbtns .btn.on.solo { background: var(--warn); }
+.knob { margin-bottom: 12px; }
+.knob .top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.knob label { color: var(--paper-muted); font-size: 11px; font-weight: 500; letter-spacing: .1em; }
+.knob output { color: var(--paper-ink); font: 600 14px/1 var(--display); min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+.knob input[type="range"] { width: 100%; margin-top: 1px; }
+.knob input[type="range"]:disabled { opacity: .38; }
+/* AUTO steht zwischen Namen und Wert, nicht am Rand: der Knopf gehoert zu
+   diesem einen Regler, und am Rand liest er sich wie eine Spaltenfunktion. */
+.animknopf {
+  margin-right: auto; padding: 1px 6px; color: var(--paper-muted); background: transparent;
+  border: 2px solid #b3a795; border-radius: 3px;
+  font: 700 9px/1.5 var(--display); letter-spacing: .1em;
+}
+.animknopf.an { color: #fffdf5; background: var(--c, #ff2e88); border-color: #3c2e49; }
+.autozeile { display: flex; gap: 8px; margin-top: 7px; }
+.autozeile label { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; letter-spacing: 0; text-transform: none; }
+.autozeile span { color: var(--paper-muted); font: 500 10px/1.2 system-ui, sans-serif; }
+.autozeile input {
+  width: 100%; min-width: 0; padding: 3px 5px; color: var(--paper-ink); background: #fffdf5;
+  border: 2px solid #8f829f; font: 600 12px var(--mono); text-align: center;
+}
+/* Auf dem Tablet ist die Spalte schmal und die drei Felder werden zu Schlitzen. */
+@media (max-width: 900px) {
+  .autozeile { flex-wrap: wrap; }
+  .autozeile label { flex: 1 1 30%; }
+}
+.knob input[type="range"]::-webkit-slider-runnable-track { background: #d6cbb4; border-color: #6f647d; }
+.knob input[type="range"]::-moz-range-track { background: #d6cbb4; border-color: #6f647d; }
+.knob .tip { display: none; }
+.empty-insp { color: var(--paper-muted); font-size: 14px; }
+.empty-insp p { margin: 8px 0 0; }
+
+/* Beatraster */
+/* Feste Hoehe statt mitwachsend. Vorher stand hier min/max, und die
+   Leiste wuchs mit jeder Figur von 187 auf 331 px - die Buehne sprang
+   also mitten im Abspielen um 144 px. Der Platz wird jetzt von Anfang
+   an reserviert; die Zeilen darunter scrollen in `.tl-scroll`.
+   Der Wert ist derselbe, den die Leiste vorher als Deckel hatte, also
+   aendert sich fuer volle Takte nichts. */
+.tl {
+  height: clamp(190px, 46vh, 470px); flex: none;
+  display: flex; flex-direction: column;
+  color: var(--ink); background: var(--bg2); border-top: 3px solid #090710;
+}
+.tl-top { display: flex; align-items: center; gap: 14px; padding: 7px 14px; border-bottom: 2px solid var(--line); }
+.tl-top h2 { margin: 0; color: var(--ink2); font-size: 13px; font-weight: 600; letter-spacing: .09em; }
+.tl-top .legend { margin: 0 0 0 auto; color: var(--muted); font-size: 12px; text-align: right; }
+.tl-top .legend b { color: var(--ink2); }
+.bars { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 6px; min-height: 52px; padding: 6px 14px; border-bottom: 2px solid var(--line); }
+/* Die Takte scrollen waagerecht, die Steuerung daneben bleibt stehen.
+   Bei dreissig Takten waere sie sonst nicht mehr erreichbar. */
+.barspur {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px;
+  overflow-x: auto; overflow-y: hidden; padding: 3px 2px;
+  scrollbar-width: thin; scrollbar-color: var(--line2) transparent;
+}
+.barspur::-webkit-scrollbar { height: 6px; }
+.barspur::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 3px; }
+.barsteuer { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.barspur .barchip { flex: 0 0 auto; }
+.bars .lab { margin-right: 2px; color: var(--muted); font-size: 11px; font-weight: 500; letter-spacing: .12em; }
+.barchip {
+  position: relative; min-width: 44px; height: 44px; padding: 0 7px; color: var(--ink2); background: #2b2540;
+  border: 2px solid var(--line2); border-radius: 6px; font: 600 15px/1 var(--display);
+}
+.barchip small { display: block; margin-top: 2px; color: var(--muted); font: 500 10px/1 var(--display); }
+.barchip:hover { color: var(--ink); border-color: var(--ac); }
+.barchip.on { color: #171426; background: var(--ac); border-color: #090710; }
+.barchip.on small { color: #171426; opacity: .72; }
+.barchip.playing::before { content: ""; position: absolute; inset: auto 4px -6px; height: 4px; background: var(--ac2); }
+.barchip.addbar { min-width: 98px; color: var(--ink); font-size: 11px; }
+.barchip.barmove { min-width: 36px; padding: 0 4px; color: var(--ink2); font-size: 13px; }
+.barsteuer .barchip.barmove:first-of-type { margin-left: 6px; }
+.barchip.barmove:disabled { color: var(--line2); border-color: var(--line); background: transparent; }
+.barchip.barkill { margin-left: 4px; color: #ffc0d0; border-color: #754055; }
+.barchip.barkill:hover { color: #fff; background: #c53a5d; border-color: #c53a5d; }
+.modes { display: flex; gap: 6px; margin-left: auto; }
+.mode { min-height: 44px; padding: 7px 12px; color: var(--muted); background: transparent; border: 2px solid var(--line2); border-radius: 6px; font: 600 15px/1 var(--display); letter-spacing: .03em; }
+.mode:hover { color: var(--ink); border-color: var(--ac2); }
+.mode.on { color: #171426; background: var(--ac2); border-color: #090710; }
+.pop {
+  position: absolute; z-index: 40; width: min(310px, calc(100vw - 24px)); padding: 8px;
+  color: var(--paper-ink); background: var(--panel); border: 3px solid #3c2e49; border-radius: 8px; box-shadow: var(--hard-shadow);
+}
+.pop button { display: block; width: 100%; min-height: 52px; margin-bottom: 7px; padding: 9px 11px; color: var(--paper-ink); text-align: left; background: #fffdf5; border: 2px solid #b9ad97; border-radius: 5px; }
+.pop button:last-child { margin-bottom: 0; }
+.pop button:hover { border-color: var(--ac); }
+.pop b { display: block; font-size: 14px; }
+.pop span { display: block; margin-top: 2px; color: var(--paper-muted); font-size: 12px; }
+.tl-scroll { flex: 1; min-height: 0; overflow: auto; padding: 0 14px 12px; scrollbar-color: var(--ac) var(--sunk); -webkit-overflow-scrolling: touch; }
+.grid { min-width: 880px; display: grid; grid-template-columns: 144px repeat(16,minmax(44px,1fr)); align-items: stretch; }
+.tl-nums { position: sticky; top: 0; z-index: 5; padding-top: 7px; background: var(--bg2); }
+.tl-nums > :first-child { position: sticky; left: 0; z-index: 6; background: var(--bg2); }
+.tl-nums .n { padding-bottom: 5px; color: var(--muted); border-bottom: 3px solid transparent; font: 400 11px/1 var(--display); text-align: center; }
+.tl-nums .n.beat { color: var(--ink2); }
+.tl-nums .n.head { color: var(--ac2); border-bottom-color: var(--ac2); }
+.trow { border-top: 2px solid var(--line); }
+.trow .rh {
+  position: sticky; left: 0; z-index: 4; width: 100%; min-width: 0; display: flex; align-items: center;
+  gap: 8px; padding: 7px 9px; overflow: hidden; color: var(--ink); text-align: left; background: var(--bg2); border: 0;
+}
+.trow .rh i { width: 11px; height: 11px; flex: none; background: var(--c); border: 1px solid #fff; }
+.trow .rh b { overflow: hidden; font-size: 13px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.trow.sel .rh { background: color-mix(in srgb, var(--c) 28%, var(--bg2)); }
+.trow.muted { opacity: .48; }
+.cell { position: relative; height: 48px; background: var(--sunk); border-left: 2px solid var(--line); cursor: ns-resize; touch-action: pan-x; }
+.cell.q { border-left-color: var(--line2); }
+.cell.head { background: #24203d; box-shadow: inset 0 0 0 2px rgba(53,214,208,.32); }
+.cell .stepbar { position: absolute; inset: auto 4px 3px; min-height: 5px; background: var(--c); border: 1px solid rgba(255,255,255,.46); box-shadow: 0 0 0 1px rgba(0,0,0,.65); }
+.cell.off .stepbar { display: none; }
+.cell:hover { background: #292442; }
+.cell.fire .stepbar { filter: brightness(1.6); }
+.tl-empty { margin: 0; padding: 18px 8px; color: var(--muted); font-size: 14px; font-weight: 650; }
+.pick-foot .warnung { display: inline-block; margin-top: 6px; color: var(--ac); font-size: 12px; font-weight: 700; }
+/* Die Quellenzeile traegt keine Betonung: sie muss dastehen und lesbar sein,
+   aber sie ist nicht das, wofuer jemand die Seite aufmacht. */
+.pick-foot .quellen { display: block; max-width: 68ch; margin: 7px auto 1px; color: var(--paper-muted); font-size: 11px; font-weight: 400; line-height: 1.5; }
+.pick-foot .quellen a { color: var(--paper-ink); text-decoration: underline; text-underline-offset: 2px; }
+.pick-foot .quellen .liz { opacity: .72; }
+
+/* Schallplatte: der Regler fuers Grundrauschen, als Gegenstand in der Welt.
+   Sie dreht sich nur, solange gespielt wird - sonst waere die Bewegung
+   Dekoration ohne Aussage. */
+.platte {
+  position: absolute; right: 14px; bottom: 14px; width: 78px; height: 78px; padding: 0;
+  display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle at 50% 50%, #2a2733 0 22%, #14121c 22% 30%, #2a2733 30% 38%,
+              #14121c 38% 46%, #2a2733 46% 54%, #14121c 54% 62%, #2a2733 62% 70%, #14121c 70%);
+  border: 2px solid #0b0a12; box-shadow: 0 2px 0 rgba(0,0,0,.5);
+  opacity: .78; transition: opacity .15s;
+  /* Die Buehne (.slots) fuellt den ganzen Bereich und wuerde den Klick
+     schlucken - die Platte muss darueber liegen. */
+  z-index: 4;
+}
+.platte:hover, .platte:focus-visible { opacity: 1; }
+.platte-loch { width: 14px; height: 14px; border-radius: 50%; background: var(--ac); border: 2px solid #0b0a12; }
+body.laeuft .platte { animation: plattedreht 1.8s linear infinite; }
+@keyframes plattedreht { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { body.laeuft .platte { animation: none; } }
+
+.tellerpop { width: 210px; z-index: 6; }
+.tellerpop b { display: block; font-size: 14px; color: var(--paper-ink); }
+.tellerpop span { display: block; margin: 2px 0 8px; color: var(--paper-muted); font-size: 12px; }
+.tellerpop input { width: 100%; }
+.tellerpop output { display: block; margin-top: 4px; color: var(--paper-ink); font-size: 12px; font-weight: 700; text-align: right; }
+
+/* Dialoge */
+.help {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  background: rgba(9,7,16,.88);
+}
+.help .sheet {
+  width: min(620px,100%); max-height: 86vh; max-height: 86dvh; overflow: auto; padding: 22px;
+  color: var(--paper-ink); background: var(--panel); border: 3px solid #3c2e49; border-radius: 10px; box-shadow: var(--hard-shadow);
+}
+.help h2 { margin: 0 0 16px; color: #b72f56; font: 700 21px/1.15 var(--display); }
+.help dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; font-size: 14px; }
+.help dt { color: #197b79; font: 600 15px/1.35 var(--display); white-space: nowrap; }
+.help dd { margin: 0; color: var(--paper-muted); }
+.help .btn { color: var(--paper-ink); background: #fffdf5; border-color: #8f829f; box-shadow: 2px 2px 0 #c8bca5; }
+.xrow { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 2px solid #d7cbb4; }
+.xrow:first-of-type { border-top: 0; }
+.xrow > div { flex: 1; min-width: 0; }
+.xrow > div > b { display: block; font-size: 14px; }
+.xrow span { display: block; margin-top: 3px; color: var(--paper-muted); font-size: 12px; }
+.xrow .btn { min-width: 100px; flex: none; }
+.xrow .btn[disabled] { opacity: .45; }
+.xpaste { padding-top: 10px; color: var(--paper-muted); border-top: 2px solid #d7cbb4; font-size: 13px; }
+.xpaste summary { cursor: pointer; }
+.xpaste textarea { width: 100%; margin: 8px 0; padding: 8px; color: var(--paper-ink); background: #fffdf5; border: 2px solid #8f829f; font: 12px var(--mono); resize: vertical; }
+.xstatus { min-height: 22px; margin: 10px 0 0; color: #197b79; font-size: 13px; }
+.xrow code, .help code { padding: 1px 4px; color: #197b79; background: #e6dcc6; font: 12px var(--mono); }
+
+/* Oberhalb dieser Breite passt die Kopfleiste in eine Zeile, sobald
+   die Regler nachgeben. Mit `wrap` half das Schrumpfen nichts:
+   Flexbox bricht die Zeile, bevor es schrumpft - der Umbruch gewinnt
+   immer gegen den Schrumpffaktor. Darunter bleibt `wrap` richtig,
+   dort ist wirklich zu wenig Platz. */
+@media (min-width: 1121px) {
+  .bar { flex-wrap: nowrap; }
+  .bar > .btn { flex: 0 0 auto; }
+  /* Der Namensblock gibt nicht nach: sonst wird der Kanalhinweis
+     gekuerzt, und ein halber Satz erklaert nichts. Nachgeben sollen
+     die Regler, die haben Reserve bis 52 px. */
+  .bar > .brand { flex: 0 0 auto; }
+  .bar > .brand { min-width: 0; }
+}
+
+@media (max-width: 1120px) and (min-width: 901px) {
+  .work { grid-template-columns: 204px minmax(0,1fr) 250px; }
+  .bar { gap: 7px 9px; }
+  .brandzeile .logo { font-size: 18px; }
+  .btn { padding-inline: 11px; }
+  .ctl input[type="range"] { width: 86px; }
+  .slot { width: 96px; }
+}
+@media (max-width: 900px) {
+  .mix { height: auto; min-height: 100vh; min-height: 100dvh; overflow: visible; }
+  .bar { position: sticky; top: 0; align-items: center; padding-bottom: 10px; }
+  .brand { flex: 1 1 auto; }
+  .brandzeile .logo { font-size: 19px; }
+  .btn.play { order: 1; min-width: 120px; }
+  .ctl { flex: 1 1 190px; }
+  .ctl input[type="range"] { flex: 1; width: auto; }
+  .btn.ghost { flex: 1 0 auto; }
+  .work { display: flex; flex-direction: column; }
+  .work > * { overflow: visible; }
+  .roster {
+    order: 1; display: grid; grid-auto-flow: column; grid-template-rows: auto auto; grid-auto-columns: max-content;
+    gap: 4px 16px; overflow-x: auto; padding: 10px 14px 13px; border-right: 0; border-bottom: 3px solid #090710;
+    scroll-snap-type: x proximity;
+  }
+  .rlabel { width: 100%; min-width: 0; margin: 0 0 3px; scroll-snap-align: start; }
+  .rlabel::after { min-width: 40px; }
+  .rgrid { display: flex; gap: 8px; }
+  .rchar { width: 100px; min-height: 96px; }
+  .stage { order: 2; min-height: 340px; overflow: hidden !important; }
+  .slots { min-height: 250px; }
+  .insp {
+    order: 3; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 18px;
+    border-top: 3px solid #090710; border-left: 0;
+  }
+  .insp > :first-child, .insp > .rowbtns, .insp > .empty-insp { grid-column: 1 / -1; }
+  .knob { margin-bottom: 8px; }
+  .tl { max-height: none; }
+  .tl-top { padding-block: 9px; }
+  .bars { min-height: 58px; }
+  .grid { min-width: 900px; grid-template-columns: 136px repeat(16,47px); }
+  .cell { height: 52px; }
+}
+@media (max-width: 620px) {
+  .pick { justify-content: flex-start; }
+  .genres { grid-template-columns: 1fr; }
+  .gcard { transform: none; }
+  .bar { display: grid; grid-template-columns: 1fr 1fr; }
+  .brand { grid-column: 1 / -1; }
+  .btn.play { order: initial; width: 100%; }
+  .songarten { grid-column: 1 / -1; justify-content: space-between; }
+  .songart { flex: 1; }
+  .ctl { grid-column: 1 / -1; }
+  .btn.ghost { width: 100%; }
+  .coach { align-items: flex-start; }
+  .coach button { margin-left: 0; }
+  .insp { grid-template-columns: 1fr; }
+  .insp > * { grid-column: 1 !important; }
+  .tl-top .legend { display: none; }
+  .bars .lab { width: 100%; }
+  .modes { width: 100%; margin-left: 0; }
+  .mode { flex: 1; }
+  .help dl { grid-template-columns: 1fr; gap: 2px; }
+  .help dd { margin-bottom: 8px; }
+  .xrow { align-items: flex-start; flex-direction: column; }
+  .xrow .btn { width: 100%; }
+}
+@media (hover: none), (pointer: coarse) {
+  .slot .kill { opacity: 1; }
+  .btn, .mode, .barchip { min-height: 44px; }
+  .rchar { min-height: 102px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
+
+/* ---------- Bitte quer halten ----------
+   Nur auf Geraeten mit grobem Zeiger (Finger) und nur hochkant. Am Schreib-
+   tisch ein schmales Fenster zu haben ist eine Entscheidung, kein Versehen -
+   dort darf nichts dazwischenkommen. Deshalb `pointer: coarse` und nicht
+   die Fensterbreite.
+   Die Obergrenze bei 1024 px laesst grosse Tablets im Hochformat in Ruhe:
+   dort ist genug Platz, und wer ein Tablet aufgestellt hat, will es nicht
+   drehen. */
+.dreh { display: none; }
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 1024px) {
+  .dreh {
+    display: grid; place-items: center;
+    position: fixed; inset: 0; z-index: 9000;
+    background: var(--bg); padding: 24px;
+    /* Randlose Geraete: nicht unter die Kanten rutschen */
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+             max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  }
+  body.hochkant-egal .dreh { display: none; }
+}
+.dreh__box { max-width: 22rem; text-align: center; }
+.dreh__titel {
+  font-family: var(--display); font-weight: 600; font-size: clamp(22px, 7vw, 30px);
+  letter-spacing: .04em; margin: 18px 0 8px; color: var(--ink);
+}
+.dreh__text { color: var(--ink2); font-size: 15px; margin: 0 0 22px; }
+.dreh__weiter { width: 100%; }
+
+/* Ein Geraet, das sich einmal dreht und kurz liegen bleibt: die Bewegung
+   zeigt, was zu tun ist, die Pause laesst es ankommen. Gezeichnet aus zwei
+   Rechtecken - ein Bild waere hier eine Datei mehr fuer vier Striche. */
+.dreh__geraet {
+  width: 74px; height: 118px; margin: 0 auto;
+  border: 3px solid var(--ac2); border-radius: 10px;
+  display: grid; place-items: center;
+  animation: drehen 3.2s ease-in-out infinite;
+}
+.dreh__geraet i { display: block; width: 34px; height: 3px; background: var(--ac2); border-radius: 2px; }
+@keyframes drehen {
+  0%, 26%   { transform: rotate(0deg); }
+  46%, 88%  { transform: rotate(-90deg); }
+  100%      { transform: rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dreh__geraet { animation: none; transform: rotate(-90deg); }
+}
+
+
+/* Die Hinweiszeile im Kopf des Beatrasters. Sie traegt wechselnde Tipps,
+   Rueckfragen und Rueckmeldungen - deshalb `aria-live` im Markup und hier
+   eine feste Mindesthoehe: springt die Zeile beim Wechseln, wandert das
+   ganze Raster darunter mit. */
+.tl-top .hinweis {
+  flex: 1 1 14rem; min-width: 0; min-height: 1.2em; margin: 0;
+  color: var(--ink2); font-size: 13px; line-height: 1.2;
+}
+.tl-top .hinweis b { color: var(--ac2); font-weight: 600; }
+@media (max-width: 620px) {
+  .tl-top .hinweis { flex-basis: 100%; }
+}
