@@ -169,6 +169,75 @@ function ensureAudio(){
   buildBuses();
   return actx;
 }
+/* ---------- Wenn der Tonfaden reisst ----------
+   Ein Anruf, Siri, der gesperrte Bildschirm, eine andere App, die den Ton
+   uebernimmt: dann haelt das Geraet den Klangkontext an. Auf dem iPad heisst
+   dieser Zustand aber NICHT 'suspended', sondern 'interrupted' - ein Name,
+   den nur Safari kennt. Jede Abfrage auf 'suspended' geht daran vorbei, und
+   genau deshalb blieb die Seite danach stumm, bis man sie neu lud.
+   Dazu kommt: `resume()` ohne Nutzergeste lehnt iOS ab. Ein einmaliger
+   Versuch reicht also nicht - es muss beim naechsten Tippen nochmal
+   probiert werden. */
+function audioLaeuft(){ return !!actx && actx.state === 'running'; }
+function weckeAudio(){
+  if(!actx) return false;
+  if(actx.state === 'running') return true;
+  if(actx.state === 'closed'){ baueAudioNeu(); return audioLaeuft(); }
+  try{ const p = actx.resume(); if(p && p.catch) p.catch(function(){}); }catch(e){}
+  return actx.state === 'running';
+}
+/* Letzter Ausweg: der Kontext ist geschlossen und laesst sich nicht mehr
+   wecken. Dann einen neuen bauen und alle Figuren neu verkabeln - die
+   alten Knoten gehoeren einem Kontext, den es nicht mehr gibt. */
+function baueAudioNeu(){
+  try{ if(typeof disposeSongAudio === 'function') disposeSongAudio(); }catch(e){}
+  actx = null; master = null; revBus = null; delBus = null; delNode = null;
+  noiseBuf = null; pumpBus = null; ambNode = null; ambGain = null;
+  ensureAudio();
+  /* Die Aufnahmen sind an ihren Kontext gebunden und muessen neu
+     entschluesselt werden, sonst klingt hinterher alles synthetisch. */
+  try{ if(typeof leereSampleSpeicher === 'function') leereSampleSpeicher(); }catch(e){}
+  try{ if(typeof bereiteSamplesVor === 'function') bereiteSamplesVor(); }catch(e){}
+  try{
+    if(typeof allSongTracks === 'function' && typeof buildChain === 'function'){
+      allSongTracks().forEach(buildChain);
+      if(typeof applyAll === 'function') applyAll();
+    }
+  }catch(e){}
+}
+
+/* ---------- Stimmenbremse ----------
+   Die Grenze eines Tablets ist nicht die Zahl der Figuren, sondern die Zahl
+   der gleichzeitig klingenden Toene: jeder Anschlag baut je nach
+   Klangerzeuger fuenf bis fuenfzehn Knoten. Gemessen an den Werksmustern
+   sind das 51 Knoten je Sekunde - harmlos. Acht dicht gewuerfelte Figuren
+   kommen leicht auf das Fuenf- bis Zehnfache, und dann bricht der Tonfaden
+   ein: erst knistert es, dann fallen Toene aus, dann steht alles.
+   Darum eine harte Obergrenze ueber ALLE Figuren hinweg. Sie greift nur in
+   Faellen, die ohnehin nach Matsch klingen, und schneidet dort die
+   spaetesten Toene weg statt den ganzen Satz zu verlieren. */
+let stimmen = [];
+let stimmenUhr = 0;
+function stimmenGrenze(){
+  /* Gemessen: acht dicht gewuerfelte Lo-fi-Figuren kommen auf hoechstens 22
+     gleichzeitige Toene und 59 Knoten je Sekunde - normale Nutzung liegt
+     also weit darunter. Die Grenze ist bewusst kein Sparzwang, sondern ein
+     Fangnetz gegen Faelle, die ohnehin nach Matsch klingen. Zu eng gesetzt
+     wuerde sie hoerbar Toene schlucken. */
+  return document.documentElement.classList.contains('klein') ? 32 : 48;
+}
+function stimmeFrei(when, dauer){
+  /* Springt die Zeit zurueck, ist das ein anderer Kontext (Export) - dann
+     ist die alte Liste wertlos. */
+  if(when < stimmenUhr - 1) stimmen = [];
+  stimmenUhr = when;
+  stimmen = stimmen.filter(function(ende){ return ende > when; });
+  if(stimmen.length >= stimmenGrenze()) return false;
+  stimmen.push(when + Math.max(0.05, dauer));
+  return true;
+}
+function stimmenZuruecksetzen(){ stimmen = []; stimmenUhr = 0; }
+
 /* Summenweg, Hall und Echo. Getrennt von ensureAudio, damit der Export
    dieselben Busse in einem OfflineAudioContext aufbauen kann. */
 function buildBuses(){
@@ -408,6 +477,8 @@ function trigger(t, when, h, schritt){
   }
   const vel = tonal ? 0.85 : (0.30 + h/7*0.70);
   const L = 0.35 + P.len*1.6;
+  /* Nach den Einzelgrenzen die Gesamtgrenze - siehe stimmeFrei(). */
+  if(!stimmeFrei(when, L)) return;
   const pf = Math.pow(2, P.pitch/12);
   /* leiern: Bandschlupf. Ein Kassettendeck haelt die Geschwindigkeit nicht,
      die Tonhoehe wandert langsam - das ist der Klang, den man mit "alt" und

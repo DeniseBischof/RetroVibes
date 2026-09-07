@@ -111,6 +111,14 @@ async function renderSong(){
     renderTracks.forEach(function(t,i){
       t.n = keepRuntime[i].n; t.voiceEnds = keepRuntime[i].voiceEnds; t.hitAt = keepRuntime[i].hitAt;
     });
+    /* Auch ein Renderkontext belegt einen der wenigen Plaetze, die iOS fuer
+       Klangkontexte vergibt - und er gibt ihn nicht von selbst zurueck.
+       Wer dreimal exportiert, ohne dass hier geschlossen wird, hat danach
+       keinen Platz mehr fuer den, der die Musik spielt. */
+    try{ if(off.close) off.close(); }catch(e){}
+    /* Die Stimmenliste zaehlt Zeiten aus dem Renderkontext - im laufenden
+       Kontext sind die wertlos. */
+    if(typeof stimmenZuruecksetzen === 'function') stimmenZuruecksetzen();
   }
   return buf;
 }

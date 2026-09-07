@@ -11,7 +11,18 @@ let tipIdx = 0, hoverHint = false;
    Die Funktion bleibt bewusst stehen: sie wird an zwei Dutzend Stellen
    gerufen, und ein stiller Nichtstuer ist sauberer als zwei Dutzend
    Streichungen. Kommt die Leiste je zurueck, reicht das Element. */
-function hint(html){ const el = $('#hintText'); if(el) el.innerHTML = html; }
+/* `fest` fuer die wenigen Meldungen, die nicht verschwinden duerfen. Ohne
+   das ueberschreibt sie der Tippwechsel (alle 9 Sekunden) oder das naechste
+   Ueberfahren eines Knopfes - und ausgerechnet "das Geraet hat den Ton
+   unterbrochen" waere weg, bevor man es gelesen hat. */
+let hinweisFestBis = 0;
+function hint(html, fest){
+  const el = $('#hintText');
+  if(!el) return;
+  if(!fest && performance.now() < hinweisFestBis) return;
+  el.innerHTML = html;
+  hinweisFestBis = fest ? performance.now() + 20000 : 0;
+}
 function rotateTip(){ if(!hoverHint) hint(TIPS[tipIdx++ % TIPS.length]); }
 
 /* ---------- 10. Genre-Auswahl ---------- */
@@ -935,7 +946,7 @@ function openGenre(g, override){
       if(warum) zeigeKlangwarnung(warum);
     }).catch(function(){});
   }
-  if(actx.state === 'suspended') actx.resume();
+  if(typeof weckeAudio === 'function') weckeAudio(); else if(actx.state === 'suspended') actx.resume();
   master.gain.value = masterVol;
   if(delNode) delNode.delayTime.value = delayZeit();
   tracks.forEach(buildChain); applyAll();
@@ -1131,6 +1142,7 @@ function geistBauen(item){
 function zugStarten(e, p, item){
   if(e.button > 0) return;
   zug = {p: p, item: item, id: e.pointerId, x0: e.clientX, y0: e.clientY, laeuft: false};
+  zugLauschenAn();
 }
 function zugBewegen(e){
   if(!zug || e.pointerId !== zug.id) return;
@@ -1156,6 +1168,7 @@ function zugBeenden(e, abbruch){
   if(!zug || (e && e.pointerId !== undefined && e.pointerId !== zug.id)) return;
   const z = zug;
   zug = null;
+  zugLauschenAus();
   if(z.geist) z.geist.remove();
   document.body.classList.remove('zieht');
   const buehne = $('.stage');
@@ -1166,11 +1179,27 @@ function zugBeenden(e, abbruch){
   if(!abbruch && e && ueberBuehne(e.clientX, e.clientY)) addTrack(z.p);
   else hint('Daneben losgelassen &ndash; <b>' + z.p.name + '</b> steht noch in der Kiste.');
 }
-/* Am Fenster, nicht an der Kachel: die Figurenliste wird bei jeder
-   Aenderung neu gebaut, und ein Zug soll das ueberleben. */
-window.addEventListener('pointermove', zugBewegen, {passive: false});
-window.addEventListener('pointerup', function(e){ zugBeenden(e, false); });
-window.addEventListener('pointercancel', function(e){ zugBeenden(e, true); });
+/* Am Fenster, nicht an der Kachel: die Figurenliste wird bei jeder Aenderung
+   neu gebaut, und ein Zug soll das ueberleben.
+
+   ABER erst, wenn wirklich gezogen wird - und danach sofort wieder weg.
+   Ein dauerhaft angemeldeter `pointermove`-Empfaenger mit `passive: false`
+   zwingt den Browser, JEDE Fingerbewegung auf der ganzen Seite erst durch
+   den Hauptfaden zu schicken, bevor er sie verarbeiten darf. Auf dem
+   Tablet kostet das genau dort, wo es am meisten weh tut: beim Ziehen an
+   einem Regler. Das war ein selbst eingebauter Bremsklotz. */
+function zugLauschenAn(){
+  window.addEventListener('pointermove', zugBewegen, {passive: false});
+  window.addEventListener('pointerup', zugLoslassen);
+  window.addEventListener('pointercancel', zugAbbrechen);
+}
+function zugLauschenAus(){
+  window.removeEventListener('pointermove', zugBewegen, {passive: false});
+  window.removeEventListener('pointerup', zugLoslassen);
+  window.removeEventListener('pointercancel', zugAbbrechen);
+}
+function zugLoslassen(e){ zugBeenden(e, false); }
+function zugAbbrechen(e){ zugBeenden(e, true); }
 
 function addTrack(p){
   if(tracks.some(function(t){ return t.p.id === p.id; })) return;
@@ -1187,7 +1216,7 @@ function addTrack(p){
   if(tracks.length >= MAX_TRACKS){ hint('Dieser Takt ist voll. Nimm erst eine Figur herunter.'); return; }
   const t = makeTrack(p);
   tracks.push(t);
-  ensureAudio(); if(actx.state === 'suspended') actx.resume();
+  ensureAudio(); if(typeof weckeAudio === 'function') weckeAudio(); else if(actx.state === 'suspended') actx.resume();
   buildChain(t); applyAll();
   rememberSelection(t.uid);
   renderRoster(); renderStage(); renderBars(); renderTimeline(); renderInspector(); save();

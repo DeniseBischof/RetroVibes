@@ -79,7 +79,44 @@ function wireTransport(){
     else{
       markStageDirty();
       startFrameLoop();
+      /* Zurueck aus dem Hintergrund: das Geraet hat den Klangkontext
+         angehalten. Ohne diesen Versuch bleibt die Seite stumm, und weil
+         der Zustand auf dem iPad 'interrupted' heisst und nicht
+         'suspended', hat ihn frueher keine Abfrage getroffen. */
+      if(typeof weckeAudio === 'function') weckeAudio();
     }
+  });
+
+  /* Jede Nutzergeste ist eine zweite Chance: iOS lehnt `resume()` ohne
+     Geste ab, ein einmaliger Versuch beim Sichtbarwerden reicht also
+     nicht. Mitlauschend und passiv - dieser Empfaenger darf nichts
+     kosten und nichts blockieren. */
+  ['pointerdown','keydown'].forEach(function(typ){
+    window.addEventListener(typ, function(){
+      if(typeof audioLaeuft === 'function' && !audioLaeuft() && actx) weckeAudio();
+    }, {capture: true, passive: true});
+  });
+
+  /* DAS hier war der Grund, warum ein Neuladen nicht half und nur das
+     Schliessen des Tabs.
+
+     Safari haelt die Tonsitzung am Tab fest, nicht am Dokument. Ein nicht
+     geschlossener AudioContext ueberlebt das Neuladen im selben Tab, und
+     iOS erlaubt nur eine Handvoll gleichzeitig. Nach ein paar Versuchen,
+     den Ton wiederzubekommen, sind alle Plaetze von Leichen belegt: der
+     neue Kontext wird zwar erzeugt, faengt aber nie an zu laufen. Erst das
+     Schliessen des Tabs raeumt auf - genau das Verhalten, das gemeldet
+     wurde.
+     `pagehide` statt `beforeunload`: auf iOS ist das das einzige
+     Ereignis, das beim Verlassen zuverlaessig kommt. */
+  window.addEventListener('pagehide', function(){
+    try{ if(actx && actx.state !== 'closed') actx.close(); }catch(e){}
+  });
+  /* Kommt die Seite aus dem Vor-/Zurueck-Speicher zurueck, ist der eben
+     geschlossene Kontext noch eingetragen - dann einen neuen bauen. */
+  window.addEventListener('pageshow', function(e){
+    if(!e.persisted) return;
+    if(actx && actx.state === 'closed' && typeof baueAudioNeu === 'function') baueAudioNeu();
   });
 }
 

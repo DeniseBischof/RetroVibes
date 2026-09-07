@@ -127,12 +127,25 @@ function bereiteSamplesVor(){
       const roh = rohDaten[id];
       if(!roh){ fertig(); return; }
       try{
+        /* `slice(0)` ist noetig: decodeAudioData nimmt den Puffer in
+           Besitz, und ein zweites Entschluesseln (neuer Kontext nach einer
+           Unterbrechung) braucht das Original noch. Gemessen kostet das
+           3 MB - die bleiben bewusst liegen, waehrend die 60 MB
+           entschluesselter Klangdaten das eigentliche Gewicht sind. */
         actx.decodeAudioData(roh.slice(0),
           function(buf){ s[id] = buf; fertig(); },
           function(){ s[id] = null; fertig(); });
       }catch(e){ fertig(); }
     });
   })).then(function(){ delete s.__irLang__; });
+}
+
+/* Die entschluesselten Aufnahmen gehoeren dem Klangkontext, in dem sie
+   entstanden sind. Muss der neu gebaut werden (siehe baueAudioNeu), sind
+   sie wertlos - dann leeren, damit sie im neuen Kontext neu entstehen. */
+function leereSampleSpeicher(){
+  const s = sampleSpeicher();
+  for(const k in s) delete s[k];
 }
 
 /* ---------- Instrumente ---------- */

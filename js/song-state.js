@@ -341,9 +341,46 @@ function gibBildschirmFrei(){
   wachSperre = null;
   try{ sperre.release(); }catch(e){}
 }
+/* ---------- Wachhund ----------
+   Bisher konnte die Seite fest ueberzeugt sein, dass sie spielt, waehrend
+   der Klangkontext laengst stand: der PLAY-Knopf leuchtete, die Figuren
+   sprangen, und es kam kein Ton. Das ist der schlimmste Fall, weil er wie
+   ein Fehler im Programm aussieht und nicht wie eine Unterbrechung durch
+   das Geraet. Der Wachhund schaut alle zwei Sekunden nach, ob die Uhr des
+   Klangkontexts ueberhaupt weiterlaeuft. */
+let wachhund = null, wachhundUhr = 0, wachhundFehler = 0;
+function starteWachhund(){
+  clearInterval(wachhund);
+  wachhundUhr = actx ? actx.currentTime : 0;
+  wachhundFehler = 0;
+  wachhund = setInterval(function(){
+    if(!playing || !actx) return;
+    const stehtStill = actx.currentTime <= wachhundUhr + 0.01;
+    wachhundUhr = actx.currentTime;
+    if(actx.state === 'running' && !stehtStill){ wachhundFehler = 0; return; }
+    /* Erst der stille Versuch. `resume()` ist asynchron, also bekommt das
+       Geraet einen Durchgang Zeit - sonst wuerde die Wiedergabe angehalten,
+       obwohl der Ton eine Zehntelsekunde spaeter wieder da ist. Gemessen
+       genau so passiert. */
+    if(typeof weckeAudio === 'function') weckeAudio();
+    if(++wachhundFehler < 2) return;
+    /* Zweimal hintereinander gestanden: jetzt hilft nur eine Nutzergeste,
+       und die kann nur der Mensch machen. Also sagen wir es ihm, statt
+       weiter ins Leere zu spielen. */
+    wachhundFehler = 0;
+    stop();
+    if(typeof hint === 'function')
+      hint('Das Gerät hat den Ton unterbrochen. <b>Tipp auf PLAY</b>, dann läuft es weiter.', true);
+  }, 2000);
+}
+function stoppeWachhund(){ clearInterval(wachhund); wachhund = null; wachhundFehler = 0; }
+
 function play(){
   ensureAudio();
-  if(actx.state === 'suspended') actx.resume();
+  /* Nicht nur 'suspended': auf dem iPad heisst der Zustand nach einer
+     Unterbrechung 'interrupted', und den traf die alte Abfrage nie. */
+  if(typeof weckeAudio === 'function') weckeAudio(); else if(actx.state === 'suspended') actx.resume();
+  if(typeof stimmenZuruecksetzen === 'function') stimmenZuruecksetzen();
   tracksAt(curBar).forEach(buildChain);
   applyAll();
   playing = true;
@@ -355,6 +392,7 @@ function play(){
   timer = setInterval(schedule, 25);
   startAmbience(actx.currentTime+0.05);
   halteBildschirmWach();
+  starteWachhund();
   const button = $('#playBtn');
   button.classList.add('on');
   button.innerHTML = '&#9632; STOP';
@@ -365,6 +403,8 @@ function stop(){
   playing = false;
   stopAmbience();
   gibBildschirmFrei();
+  stoppeWachhund();
+  if(typeof stimmenZuruecksetzen === 'function') stimmenZuruecksetzen();
   clearInterval(timer);
   timer = null;
   visQ = [];
@@ -383,7 +423,7 @@ function togglePlay(){
 }
 function audition(track, height){
   ensureAudio();
-  if(actx.state === 'suspended') actx.resume();
+  if(typeof weckeAudio === 'function') weckeAudio(); else if(actx.state === 'suspended') actx.resume();
   buildChain(track);
   if(!playing && !track.mute){
     trigger(track, actx.currentTime+0.02, height, 0);
