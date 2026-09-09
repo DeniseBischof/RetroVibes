@@ -365,16 +365,24 @@ function setzeRegen(g){
    CSS-Verlauf mit zwei Lichtkegeln, und der Sprung von der gedruckten
    Startseite hinein war ein harter Bruch. */
 let stageRO = null;
-let stageRahmen = 0;
+let stageRahmen = 0, stageTimer = 0, stageMass = '';
 /* Beim Ziehen am Fenster feuert der Beobachter bei jedem Pixel. Ein
    Druck der ganzen Buehne kostet aber je nach Groesse hundert
-   Millisekunden - also hoechstens einmal pro Bild. */
+   Millisekunden, auf dem Handy ein Mehrfaches - und waehrenddessen steht
+   der Sequencer. Deshalb erst drucken, wenn die Groesse eine Weile
+   stillsteht: die Adressleiste auf Android faehrt ueber viele Bilder
+   ein und aus, und jedes davon war vorher ein eigener Druck. Bis dahin
+   zieht CSS den alten Druck einfach auf die neue Groesse. */
 function bestelleStageDruck(){
-  if(stageRahmen) return;
-  stageRahmen = requestAnimationFrame(function(){
-    stageRahmen = 0;
-    paintStagePrint();
-  });
+  clearTimeout(stageTimer);
+  stageTimer = setTimeout(function(){
+    stageTimer = 0;
+    if(stageRahmen) return;
+    stageRahmen = requestAnimationFrame(function(){
+      stageRahmen = 0;
+      paintStagePrint();
+    });
+  }, 220);
 }
 function paintStagePrint(){
   const cv = $('#stageDruck');
@@ -382,6 +390,10 @@ function paintStagePrint(){
   const stage = cv.parentElement;
   const cssW = Math.round(stage.clientWidth), cssH = Math.round(stage.clientHeight);
   if(cssW < 60 || cssH < 60) return;
+  /* Gleiche Welt, gleiche Groesse: der Druck steht schon. */
+  const mass = genre.id + '|' + cssW + 'x' + cssH;
+  if(mass === stageMass) return;
+  stageMass = mass;
 
   /* Die Buehne ist gross. Auf zu vielen Bildpunkten dauert der Druck
      spuerbar, darum oberhalb einer Grenze in CSS-Pixeln rechnen und
@@ -991,7 +1003,7 @@ function disarmReset(){
 }
 function backToPick(){
   disarmReset();
-  stop(); save();
+  stop(); saveJetzt();   /* die Karten lesen den Stand gleich wieder ein */
   disposeSongAudio();
   $('#screenMix').hidden = true;
   $('#screenPick').hidden = false;
@@ -1351,6 +1363,14 @@ function drawStage(){
        Kategoriefarben sind fuer den Bildschirm gemacht und leuchten
        auf gedrucktem Grund wie Neon. */
     const col = risoFarben(genre)[0];
+    /* Der juengste Anschlag, der schon erklungen ist. Kuenftige bleiben in
+       der Schlange stehen, bis sie faellig sind - so faellt bei dichten
+       Mustern kein Zucken mehr unter den Tisch (siehe merkeTreffer). */
+    const q = t.treffer;
+    if(q && q.length){
+      while(q.length > 1 && q[1] <= now) q.shift();
+      if(q[0] <= now) t.hitAt = q[0];
+    }
     const since = now - t.hitAt;
     const e = (since >= 0 && since < 0.3) ? 1 - since/0.3 : 0;
     if(t.hitAt !== t.seen && since >= 0 && since < 0.12 && !t.mute){ t.seen = t.hitAt; spawnSparks(t, cv); }

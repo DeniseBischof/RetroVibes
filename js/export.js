@@ -11,7 +11,20 @@ function loadState(gid){
   const legacy = readStore(LEGACY_LSK);
   return legacy && legacy[gid] ? legacy[gid] : null;
 }
+/* Gesammelt statt sofort: beim Ziehen an einem Schritt oder Regler kam
+   save() viele Male je Sekunde, und jedes Mal wurde der ganze Song in JSON
+   gewandelt und in localStorage geschrieben. Auf dem Handy sind das
+   spuerbare Millisekunden auf dem Hauptfaden, genau dort, wo der Sequencer
+   sie braucht. Wer den Stand sofort braucht (Weltwechsel, Verlassen der
+   Seite), ruft saveJetzt(). */
+let saveTimer = 0;
 function save(){
+  if(!genre) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveJetzt, 250);
+}
+function saveJetzt(){
+  clearTimeout(saveTimer); saveTimer = 0;
   if(!genre) return;
   try{
     const all = readAll();
@@ -78,7 +91,7 @@ async function renderSong(){
      wirft dann beim Verbinden - betrifft jede Welt mit Sidechain. */
   const keep = {actx:actx, master:master, revBus:revBus, delBus:delBus, delNode:delNode,
                 noiseBuf:noiseBuf, pumpBus:pumpBus, revConv:revConv};
-  const keepRuntime = renderTracks.map(function(t){ return {n:t.n, voiceEnds:t.voiceEnds, hitAt:t.hitAt}; });
+  const keepRuntime = renderTracks.map(function(t){ return {n:t.n, voiceEnds:t.voiceEnds, hitAt:t.hitAt, treffer:t.treffer}; });
   let buf = null;
   try{
     actx = off;
@@ -88,7 +101,7 @@ async function renderSong(){
     startAmbience(0, total);
     master.gain.value = masterVol;
     delNode.delayTime.value = delayZeit();
-    renderTracks.forEach(function(t){ t.n = null; t.voiceEnds = []; buildChain(t); });
+    renderTracks.forEach(function(t){ t.n = null; t.voiceEnds = []; t.treffer = []; buildChain(t); });
     let time = 0.1;
     for(let b=0;b<barCount;b++){
       const localTracks = tracksAt(b);
@@ -110,6 +123,7 @@ async function renderSong(){
     pumpBus = keep.pumpBus; revConv = keep.revConv;
     renderTracks.forEach(function(t,i){
       t.n = keepRuntime[i].n; t.voiceEnds = keepRuntime[i].voiceEnds; t.hitAt = keepRuntime[i].hitAt;
+      t.treffer = keepRuntime[i].treffer || [];
     });
     /* Auch ein Renderkontext belegt einen der wenigen Plaetze, die iOS fuer
        Klangkontexte vergibt - und er gibt ihn nicht von selbst zurueck.

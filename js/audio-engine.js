@@ -436,6 +436,18 @@ function duckeBeimKick(when){
   }catch(e){}
 }
 
+/* Anschlagszeiten fuer die Buehne merken - als Warteschlange, nicht als
+   einzelner Wert. Der Sequencer plant bis zu VORLAUF Sekunden voraus; ein
+   einzelnes t.hitAt wurde bei dichten Mustern vom naechsten Anschlag
+   ueberschrieben, bevor der aktuelle ueberhaupt faellig war, und die Figur
+   zuckte nicht mehr. drawStage() holt sich daraus den juengsten Anschlag,
+   der schon erklungen ist. */
+function merkeTreffer(t, when){
+  const q = t.treffer || (t.treffer = []);
+  q.push(when);
+  if(q.length > 32) q.splice(0, q.length-32);
+}
+
 /* ---------- 6. Klangerzeuger ---------- */
 function trigger(t, when, h, schritt){
   /* Kette aus einem fremden Kontext (Export, Neuaufbau) erst wegwerfen,
@@ -544,7 +556,7 @@ function trigger(t, when, h, schritt){
        Stellung sind es 6 % Unterschied, das hoert niemand - betroffen sind
        nur Figuren, die ganz unten stehen, und die wollen genau das. */
     const laenge = tonal ? (0.10 + P.len*1.95) : (0.12 + P.len*0.5);
-    if(spieleSample(t, when, h, out, vel*0.8, laenge, midi)){ t.hitAt = when; return; }
+    if(spieleSample(t, when, h, out, vel*0.8, laenge, midi)){ merkeTreffer(t, when); return; }
   }
 
   switch(t.p.engine){
@@ -1665,5 +1677,5 @@ function trigger(t, when, h, schritt){
       o.connect(og); og.connect(out);
     }
   }
-  t.hitAt = when;
+  merkeTreffer(t, when);
 }

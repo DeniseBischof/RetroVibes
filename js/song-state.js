@@ -88,6 +88,7 @@ function makeTrack(preset, state){
     mute: state ? !!state.mute : false,
     solo: state ? !!state.solo : false,
     hitAt: -9,
+    treffer: [],
     cv: null,
     cells: null,
     n: null,
@@ -316,18 +317,30 @@ function stepDur(index){
    damit dem Audiofaden die geplanten Toene ausgingen und der Ton abbrach.
    0,3 s ueberbrueckt das. Der Preis: eine Aenderung im Raster wird bis zu
    0,3 s spaeter hoerbar, und das hoert niemand. */
-const VORLAUF = 0.30;
+/* Auf Handy und Tablet noch mehr: dort dauert ein Neuaufbau der Oberflaeche
+   ein Mehrfaches. Der Vorlauf kostet beim Bauen nichts Hoerbares - ein
+   gesetzter Schritt klingt ohnehin erst, wenn der Kopf ihn erreicht, und
+   Stumm greift direkt am Verstaerker. Nur Solo reagiert so viel spaeter. */
+function vorlauf(){ return document.documentElement.classList.contains('klein') ? 0.6 : 0.35; }
 function schedule(){
   if(!actx || !playing) return;
-  /* Zu weit hinterher (der Hauptfaden stand lange still) oder zu weit
-     voraus (der Klangkontext wurde neu gebaut, seine Uhr faengt bei null
-     an): in beiden Faellen frisch bei jetzt weitermachen statt zu schweigen. */
-  if(nextTime < actx.currentTime-0.2 || nextTime > actx.currentTime+2){
-    nextTime = actx.currentTime+0.05;
-    visQ = [];
+  const jetzt = actx.currentTime;
+  /* Weit voraus: der Klangkontext wurde neu gebaut, seine Uhr faengt bei
+     null an. Dann frisch bei jetzt weitermachen statt zu schweigen. */
+  if(nextTime > jetzt+2){ nextTime = jetzt+0.05; visQ = []; }
+  /* Hinterher, weil der Hauptfaden stand: die verpassten Schritte stumm
+     ueberspringen, aber im Raster weiterzaehlen. Vorher blieb der Zaehler
+     stehen, und der ganze Loop verschob sich um die Dauer des Haengers -
+     jeder Haenger wurde so zum Stolperer, den man noch Takte spaeter
+     hoerte. Alles nachzuholen waere ein Klumpen aus Toenen. */
+  let uebersprungen = 0;
+  while(nextTime < jetzt-0.1 && uebersprungen++ < 64){
+    nextTime += stepDur(stepIdx);
+    stepIdx = (stepIdx+1)%16;
+    if(stepIdx === 0) playBar = songMode ? (playBar+1)%barCount : curBar;
   }
   let guard = 0;
-  while(nextTime < actx.currentTime+VORLAUF && guard++ < 32){
+  while(nextTime < jetzt+vorlauf() && guard++ < 32){
     const scheduledBar = playBar;
     const scheduledTracks = tracksAt(scheduledBar);
     const solo = scheduledTracks.some(function(track){ return track.solo; });

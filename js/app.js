@@ -75,6 +75,9 @@ function wireTransport(){
     if(n) hint(n.getAttribute('data-hint'));
   });
   document.addEventListener('visibilitychange', function(){
+    /* Ein Handy raeumt einen Tab im Hintergrund auch ohne pagehide weg -
+       also jetzt schreiben, was noch aussteht. */
+    if(document.hidden && typeof saveJetzt === 'function') saveJetzt();
     if(document.hidden && playing) stop();
     else{
       markStageDirty();
@@ -110,6 +113,7 @@ function wireTransport(){
      `pagehide` statt `beforeunload`: auf iOS ist das das einzige
      Ereignis, das beim Verlassen zuverlaessig kommt. */
   window.addEventListener('pagehide', function(){
+    try{ if(typeof saveJetzt === 'function') saveJetzt(); }catch(e){}
     try{ if(actx && actx.state !== 'closed') actx.close(); }catch(e){}
   });
   /* Kommt die Seite aus dem Vor-/Zurueck-Speicher zurueck, ist der eben
