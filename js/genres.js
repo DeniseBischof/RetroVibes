@@ -336,7 +336,15 @@ const GENRES = [
      sind es genau sechs Halbtoene. Jetzt spielt die Figur diese beiden Toene
      nacheinander, am Taktende, und das G# faellt in das A des naechsten
      Durchlaufs. Dasselbe Intervall - nur gehoert es jetzt dazu. */
-    C('ho18','Teufelston','melo','keytar','pad',0,'............3.6.',{params:{vol:0.50, tone:0.40, len:0.40, space:0.52}}),
+    /* Beide Toene lagen auf den Schritten 13 und 15 - zwei Flaechen im
+     Abstand von 0,27 s, jede mit 0,4 s Anstieg und fast drei Sekunden
+     Nachklang. Das war kein Intervall, das war ein Verschmieren, und es
+     klang bis weit in den naechsten Takt hinein ueber das A. Jetzt je eine
+     Takthaelfte: D ueber A-Moll (die Quarte, die nicht aufloest), dann G#
+     ueber F-Dur. Das D klingt noch nach, wenn das G# einsetzt - der Tritonus
+     steht also weiterhin, nur als Flaeche, die sich langsam verschiebt, und
+     das G# hat eine halbe Sekunde Vorsprung, bevor es ins A faellt. */
+    C('ho18','Teufelston','melo','keytar','pad',0,'3.......6.......',{params:{vol:0.50, tone:0.40, len:0.40, space:0.52}}),
     /* Chor durch einen uebersteuerten Verstaerker, und aus einer hoeheren Lage
      geholt und langsamer abgespielt. Beides lag im Code bereit und wurde hier
      nie benutzt: `verzerrung` steht sonst nur im Cyberpunk, `dehnen` nirgends.
@@ -782,7 +790,16 @@ const GENRES = [
     C('we6','Tiefe Streicher','bass','cello','strings',-12,'0.......4.......',{body:'low', sample:'cello', params:{vol:0.44, tone:0.58, len:0.82, space:0.26}}),
     C('we15','E-Bass','bass','roehre','bass',-12,'0.0.0.0.4.4.4.4.',{params:{vol:0.47, tone:0.44, len:0.16, space:0.06}}),
     C('we8','Klampfe','melo','gitarre','twang',12,'0...0.4.....2...',{sample:'gitarre', tremolo:0.55, params:{vol:0.39, tone:0.44, len:0.34, space:0.44}}),
-    C('we9','Mundharmonika','melo','floete','harmonica',0,'4.....2.....4...',{sample:'mundharmonika', params:{vol:0.58, tone:0.82, len:0.30, space:0.40}}),
+    /* Die Figur aus "Spiel mir das Lied vom Tod": Quinte, kleine Sexte,
+     Quinte - drei Toene, von denen der mittlere einen Halbton zu hoch
+     steht und wieder zurueckfaellt. Vorher A, F, A: harmonisch sauber, aber
+     ohne die Reibung, die eine Mundharmonika in dieser Welt ausmacht.
+     Die Aufnahme kennt nur G3 und C4 (siehe Manifest), das Bb liegt drei
+     Halbtoene ueber G und passt gerade noch. Abstaende 6, 5, 5 Schritte:
+     bei 100 BPM sind das 0,75 s und mehr, und die gehaltene Note ist mit
+     len 0,30 rund 0,8 s lang - die Toene ueberlappen nur in der Ausblendung.
+     Das zweite A liegt auf der Takthaelfte, in der auch der Bass auf A steht. */
+    C('we9','Mundharmonika','melo','floete','harmonica',0,'4.....5....4....',{sample:'mundharmonika', params:{vol:0.58, tone:0.82, len:0.30, space:0.40}}),
     C('we10','Pfiff','melo','saenger','whistle',12,'0...4.......2...',{params:{vol:0.95, len:0.52, space:0.34}}),
     C('we14','Trompete','melo','funker','trompete',12,'....0.......4...',{sample:'trompete', params:{vol:0.60, len:0.62, space:0.50}}),
     C('we13','Banjo','melo','gitarre','banjo',0,'0.0.4.0.2.0.4.0.',{params:{vol:0.53, tone:0.60, len:0.22, space:0.30}}),
