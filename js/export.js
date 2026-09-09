@@ -77,7 +77,7 @@ async function renderSong(){
      Knoten aus einem fremden Kontext. Die naechste Figur, die gebaut wird,
      wirft dann beim Verbinden - betrifft jede Welt mit Sidechain. */
   const keep = {actx:actx, master:master, revBus:revBus, delBus:delBus, delNode:delNode,
-                noiseBuf:noiseBuf, pumpBus:pumpBus};
+                noiseBuf:noiseBuf, pumpBus:pumpBus, revConv:revConv};
   const keepRuntime = renderTracks.map(function(t){ return {n:t.n, voiceEnds:t.voiceEnds, hitAt:t.hitAt}; });
   let buf = null;
   try{
@@ -107,7 +107,7 @@ async function renderSong(){
   } finally {
     actx = keep.actx; master = keep.master; revBus = keep.revBus;
     delBus = keep.delBus; delNode = keep.delNode; noiseBuf = keep.noiseBuf;
-    pumpBus = keep.pumpBus;
+    pumpBus = keep.pumpBus; revConv = keep.revConv;
     renderTracks.forEach(function(t,i){
       t.n = keepRuntime[i].n; t.voiceEnds = keepRuntime[i].voiceEnds; t.hitAt = keepRuntime[i].hitAt;
     });

@@ -150,6 +150,10 @@ function gbVol(v){ return Math.round(v*15)/15; }
 
 /* ---------- 4. Audio ---------- */
 let actx=null, master=null, revBus=null, delBus=null, delNode=null, noiseBuf=null;
+/* Der Hall-Convolver bleibt erreichbar, damit die echte Raumaufnahme
+   nachgereicht werden kann, sobald sie dekodiert ist - ohne die Busse ein
+   zweites Mal zu bauen. */
+let revConv = null;
 /* Sidechain-Bus: Baesse, Melodien und Flaechen laufen hier durch und
    werden bei jedem Kick kurz leiser. Dieses Atmen im Takt ist das
    Kennzeichen elektronischer Musik - ohne es klingt alles statisch. */
@@ -192,18 +196,27 @@ function weckeAudio(){
 function baueAudioNeu(){
   try{ if(typeof disposeSongAudio === 'function') disposeSongAudio(); }catch(e){}
   actx = null; master = null; revBus = null; delBus = null; delNode = null;
-  noiseBuf = null; pumpBus = null; ambNode = null; ambGain = null;
+  noiseBuf = null; pumpBus = null; ambNode = null; ambGain = null; revConv = null;
   ensureAudio();
   /* Die Aufnahmen sind an ihren Kontext gebunden und muessen neu
-     entschluesselt werden, sonst klingt hinterher alles synthetisch. */
+     entschluesselt werden, sonst klingt hinterher alles synthetisch. Der
+     Raum kommt nach, sobald er dekodiert ist. */
   try{ if(typeof leereSampleSpeicher === 'function') leereSampleSpeicher(); }catch(e){}
-  try{ if(typeof bereiteSamplesVor === 'function') bereiteSamplesVor(); }catch(e){}
+  try{
+    if(typeof bereiteSamplesVor === 'function')
+      bereiteSamplesVor().then(aktualisiereRaum).catch(function(){});
+  }catch(e){}
   try{
     if(typeof allSongTracks === 'function' && typeof buildChain === 'function'){
       allSongTracks().forEach(buildChain);
       if(typeof applyAll === 'function') applyAll();
     }
   }catch(e){}
+  /* Lief gerade etwas, soll es weiterlaufen: Stimmenliste und Ambience
+     gehoerten zum alten Kontext. Den Sequencer holt schedule() selbst
+     auf die neue Uhr. */
+  stimmenZuruecksetzen();
+  if(typeof playing !== 'undefined' && playing) startAmbience(actx.currentTime+0.05);
 }
 
 /* ---------- Stimmenbremse ----------
@@ -258,6 +271,7 @@ function buildBuses(){
   /* echte Raumaufnahme, falls hinterlegt - sonst der gerechnete Raum */
   const echterRaum = (typeof irBuffer === 'function') ? irBuffer() : null;
   conv.buffer = echterRaum || impulse(2.4, 2.8);
+  revConv = conv;
   const revHP = actx.createBiquadFilter(); revHP.type='highpass'; revHP.frequency.value=320; revHP.Q.value=0.6;
   const revLP = actx.createBiquadFilter(); revLP.type='lowpass'; revLP.frequency.value=5600; revLP.Q.value=0.6;
   revBus = actx.createGain(); revBus.gain.value = 1;
@@ -278,6 +292,19 @@ function buildBuses(){
   noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate*2), actx.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+}
+/* Die echte Raumaufnahme in den laufenden Hall haengen, sobald sie da ist.
+   Frueher wurde dafuer buildBuses() ein zweites Mal gerufen - das legte
+   Kompressor, Convolver und Delay-Schleife komplett neu an, ohne die alten
+   zu trennen. Alle bis dahin gebauten Figuren hingen weiter am alten
+   Master: der VOL-Regler und das Ducken trafen sie nicht mehr, und mit
+   jedem Weltwechsel lief ein Convolver mehr. Jetzt wird nur der Puffer
+   getauscht. */
+function aktualisiereRaum(){
+  if(!revConv || typeof irBuffer !== 'function') return;
+  let ir = null;
+  try{ ir = irBuffer(); }catch(e){}
+  if(ir && revConv.buffer !== ir){ try{ revConv.buffer = ir; }catch(e){} }
 }
 /* ---------- Ambience: Dauerklang einer Welt ----------
    Simuliertes Schallplattenrauschen als nahtlose Schleife: leises
@@ -411,6 +438,9 @@ function duckeBeimKick(when){
 
 /* ---------- 6. Klangerzeuger ---------- */
 function trigger(t, when, h, schritt){
+  /* Kette aus einem fremden Kontext (Export, Neuaufbau) erst wegwerfen,
+     sonst wirft der naechste connect mitten im Sequencer. */
+  if(t.n && t.n.ctx !== actx && typeof disconnectTrack === 'function') disconnectTrack(t);
   if(!t.n) buildChain(t);
   if(!t.n) return;
   /* satz: mehrere Toene gleichzeitig, angegeben als Stufenabstaende auf der
@@ -477,8 +507,14 @@ function trigger(t, when, h, schritt){
   }
   const vel = tonal ? 0.85 : (0.30 + h/7*0.70);
   const L = 0.35 + P.len*1.6;
-  /* Nach den Einzelgrenzen die Gesamtgrenze - siehe stimmeFrei(). */
-  if(!stimmeFrei(when, L)) return;
+  /* Nach den Einzelgrenzen die Gesamtgrenze - siehe stimmeFrei().
+     Gezaehlt wird mit einer realistischen Dauer je Klangart, nicht mit L:
+     L machte aus jeder Hi-Hat (20 bis 260 ms) eine Stimme von ueber einer
+     Sekunde. Damit war die Grenze auf dem Tablet bei einem dichten Beat
+     schnell erreicht, und was dann wegfiel, waren die zuletzt geplanten
+     Toene - also genau die Figur, die man eben auf die Buehne gezogen hat. */
+  const stimmDauer = tonal ? (0.15 + P.len*1.4) : (0.08 + P.len*0.4);
+  if(!stimmeFrei(when, stimmDauer)) return;
   const pf = Math.pow(2, P.pitch/12);
   /* leiern: Bandschlupf. Ein Kassettendeck haelt die Geschwindigkeit nicht,
      die Tonhoehe wandert langsam - das ist der Klang, den man mit "alt" und

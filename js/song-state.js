@@ -172,7 +172,13 @@ function hydrateSongBars(activeGenre, state){
 }
 
 function disconnectTrack(track){
-  if(!track || !track.n) return;
+  if(!track) return;
+  /* Die Ketten des Sample-Pfads (Verzerrung, Senke, Tremolo) haengen an
+     der Figur, nicht an track.n. Ohne das lief der Tremolo-Oszillator
+     einer entfernten Figur ewig weiter. */
+  if(track.tremKette && track.tremKette.lfo){ try{ track.tremKette.lfo.stop(); }catch(error){} }
+  track.zerrKette = null; track.senkKette = null; track.tremKette = null;
+  if(!track.n) return;
   try{ track.n.in.disconnect(); }catch(error){}
   try{ track.n.g.disconnect(); }catch(error){}
   try{ track.n.send.disconnect(); }catch(error){}
@@ -184,7 +190,12 @@ function disposeSongAudio(){ allSongTracks().forEach(disconnectTrack); }
 
 /* ---------- Audiokette pro Figur ---------- */
 function buildChain(track){
-  if(!actx || track.n) return;
+  if(!actx) return;
+  /* Eine Kette aus einem anderen Kontext (Offline-Export, neu gebauter
+     Kontext) ist wertlos: jeder connect darauf wirft, und zwar mitten im
+     Sequencer - danach blieben alle folgenden Figuren stumm. */
+  if(track.n && track.n.ctx !== actx) disconnectTrack(track);
+  if(track.n) return;
   const input = actx.createGain();
   const filter = actx.createBiquadFilter();
   filter.type = 'lowpass';
@@ -205,7 +216,7 @@ function buildChain(track){
   gain.connect(summe);
   gain.connect(send); send.connect(revBus);
   gain.connect(delaySend); delaySend.connect(delBus);
-  track.n = {in:input, f:filter, pan:pan, g:gain, send:send, dsend:delaySend};
+  track.n = {in:input, f:filter, pan:pan, g:gain, send:send, dsend:delaySend, ctx:actx};
   applyParams(track);
 }
 function applyParams(track){
@@ -299,14 +310,24 @@ function stepDur(index){
   const swing = (swingPct/100)*0.56;
   return index % 2 === 0 ? base*(1+swing) : base*(1-swing);
 }
+/* Wie weit der Sequencer vorausplant. Mit 0,12 s reichte jeder Haenger
+   des Hauptfadens ueber 100 ms - ein Neuaufbau von Kiste, Buehne und
+   Raster beim Verschieben einer Figur, ein Taktwechsel im Song-Modus -,
+   damit dem Audiofaden die geplanten Toene ausgingen und der Ton abbrach.
+   0,3 s ueberbrueckt das. Der Preis: eine Aenderung im Raster wird bis zu
+   0,3 s spaeter hoerbar, und das hoert niemand. */
+const VORLAUF = 0.30;
 function schedule(){
   if(!actx || !playing) return;
-  if(nextTime < actx.currentTime-0.2){
+  /* Zu weit hinterher (der Hauptfaden stand lange still) oder zu weit
+     voraus (der Klangkontext wurde neu gebaut, seine Uhr faengt bei null
+     an): in beiden Faellen frisch bei jetzt weitermachen statt zu schweigen. */
+  if(nextTime < actx.currentTime-0.2 || nextTime > actx.currentTime+2){
     nextTime = actx.currentTime+0.05;
     visQ = [];
   }
   let guard = 0;
-  while(nextTime < actx.currentTime+0.12 && guard++ < 32){
+  while(nextTime < actx.currentTime+VORLAUF && guard++ < 32){
     const scheduledBar = playBar;
     const scheduledTracks = tracksAt(scheduledBar);
     const solo = scheduledTracks.some(function(track){ return track.solo; });
@@ -355,7 +376,9 @@ function starteWachhund(){
   wachhundFehler = 0;
   wachhund = setInterval(function(){
     if(!playing || !actx) return;
-    const stehtStill = actx.currentTime <= wachhundUhr + 0.01;
+    /* Laeuft die Uhr rueckwaerts, ist das ein neu gebauter Kontext
+       (baueAudioNeu) - der steht nicht, er faengt nur bei null an. */
+    const stehtStill = actx.currentTime <= wachhundUhr + 0.01 && actx.currentTime >= wachhundUhr;
     wachhundUhr = actx.currentTime;
     if(actx.state === 'running' && !stehtStill){ wachhundFehler = 0; return; }
     /* Erst der stille Versuch. `resume()` ist asynchron, also bekommt das

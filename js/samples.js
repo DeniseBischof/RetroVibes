@@ -96,17 +96,57 @@ function rueckBuffer(buf){
 
 /* Dekodieren pro AudioContext: der Export rendert in einem eigenen Kontext,
    und ein AudioBuffer gehoert immer zu genau einem. */
+/* Laufende Dekodierungen je Kontext, als Promise. Wer auf einen Puffer
+   warten will, haengt sich an das laufende Versprechen, statt dieselbe
+   Datei ein zweites Mal zu entschluesseln - das passierte vorher beim
+   Export kurz nach dem Oeffnen einer Welt: rund 60 MB zweimal. */
+const dekodierLauf = new WeakMap();   /* AudioContext -> {id: Promise} */
+function laufSpeicher(){
+  let l = dekodierLauf.get(actx);
+  if(!l){ l = {}; dekodierLauf.set(actx, l); }
+  return l;
+}
+/* 'laeuft' = wird gerade entschluesselt, 'kaputt' = ging nicht. Beides
+   sind Platzhalter, kein Klang - und 'kaputt' wird nicht bei jedem Ton
+   erneut versucht. */
+function bufferFertig(da){ return !!da && typeof da !== 'string'; }
+function dekodiere(id){
+  const s = sampleSpeicher(), l = laufSpeicher();
+  if(l[id]) return l[id];
+  const roh = rohDaten[id];
+  if(!roh) return Promise.resolve(null);
+  s[id] = 'laeuft';
+  const p = new Promise(function(fertig){
+    try{
+      /* `slice(0)` ist noetig: decodeAudioData nimmt den Puffer in
+         Besitz, und ein zweites Entschluesseln (neuer Kontext nach einer
+         Unterbrechung) braucht das Original noch. Gemessen kostet das
+         3 MB - die bleiben bewusst liegen, waehrend die 60 MB
+         entschluesselter Klangdaten das eigentliche Gewicht sind. */
+      actx.decodeAudioData(roh.slice(0),
+        function(buf){ s[id] = buf; fertig(buf); },
+        function(){ s[id] = 'kaputt'; fertig(null); });
+    }catch(e){ s[id] = 'kaputt'; fertig(null); }
+  }).then(function(buf){ delete l[id]; return buf; });
+  l[id] = p;
+  return p;
+}
 function holeBuffer(id){
   const s = sampleSpeicher();
   const da = s[id];
-  /* nur fertige Buffer herausgeben - 'laeuft' ist ein Platzhalter, kein Klang */
-  if(da && typeof da !== 'string') return da;
-  if(da === 'laeuft') return null;
-  const roh = rohDaten[id];
-  if(!roh) return null;
-  s[id] = 'laeuft';
-  actx.decodeAudioData(roh.slice(0), function(buf){ s[id] = buf; }, function(){ s[id] = null; });
+  /* nur fertige Buffer herausgeben */
+  if(bufferFertig(da)) return da;
+  if(typeof da === 'string') return null;
+  if(!rohDaten[id]) return null;
+  dekodiere(id);
   return null;                     /* beim ersten Mal noch nicht fertig - dann Synthese */
+}
+/* Auf einen einzelnen Puffer warten: fertiger Puffer oder null. */
+function wartenAufBuffer(id){
+  const da = sampleSpeicher()[id];
+  if(bufferFertig(da)) return Promise.resolve(da);
+  if(da === 'kaputt') return Promise.resolve(null);
+  return dekodiere(id);
 }
 
 /* Alle vorhandenen Aufnahmen im AKTUELLEN Kontext dekodieren und darauf warten.
@@ -116,28 +156,11 @@ function holeBuffer(id){
 function bereiteSamplesVor(){
   if(!sampleManifest) return Promise.resolve();
   const s = sampleSpeicher();
-  const ids = Object.keys(rohDaten);
-  const offen = ids.filter(function(id){
-    const da = s[id];
-    return !(da && typeof da !== 'string');
+  const offen = Object.keys(rohDaten).filter(function(id){
+    return !bufferFertig(s[id]) && s[id] !== 'kaputt';
   });
   if(!offen.length) return Promise.resolve();
-  return Promise.all(offen.map(function(id){
-    return new Promise(function(fertig){
-      const roh = rohDaten[id];
-      if(!roh){ fertig(); return; }
-      try{
-        /* `slice(0)` ist noetig: decodeAudioData nimmt den Puffer in
-           Besitz, und ein zweites Entschluesseln (neuer Kontext nach einer
-           Unterbrechung) braucht das Original noch. Gemessen kostet das
-           3 MB - die bleiben bewusst liegen, waehrend die 60 MB
-           entschluesselter Klangdaten das eigentliche Gewicht sind. */
-        actx.decodeAudioData(roh.slice(0),
-          function(buf){ s[id] = buf; fertig(); },
-          function(){ s[id] = null; fertig(); });
-      }catch(e){ fertig(); }
-    });
-  })).then(function(){ delete s.__irLang__; });
+  return Promise.all(offen.map(dekodiere)).then(function(){ delete s.__irLang__; });
 }
 
 /* Die entschluesselten Aufnahmen gehoeren dem Klangkontext, in dem sie

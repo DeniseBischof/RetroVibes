@@ -889,7 +889,11 @@ function renderSongarten(){
 function openGenre(g, override){
   if(playing) stop();
   if(songBars.length) disposeSongAudio();
-  genre = g;
+  /* Eine flache Kopie: setzeSongart() schreibt Tempo, Grundton und
+     Tonleiter in die Welt. Direkt am Eintrag in GENRES blieb das haengen -
+     die Weltenkarte zeigte danach das Tempo der zuletzt gewaehlten Songart,
+     und "Neu" setzte auf den veraenderten Wert zurueck. */
+  genre = Object.assign({}, g);
   const r = document.documentElement.style;
   r.setProperty('--ac', g.ac); r.setProperty('--ac2', g.ac2);
   /* Die beiden Druckfarben der Welt auch dem Stylesheet geben - der
@@ -938,12 +942,17 @@ function openGenre(g, override){
   /* Klangdateien im Hintergrund holen; ohne sie klingt alles synthetisch */
   if(typeof ladeKlangdateien === 'function'){
     ladeKlangdateien().then(function(){
-      if(typeof klangdateienAktiv === 'function' && klangdateienAktiv()) buildBuses();
       /* Konnten die Aufnahmen nicht geladen werden, klingt jede Figur
          synthetisch. Ohne Hinweis sieht das aus wie ein Klangfehler und man
          sucht an der falschen Stelle - deshalb steht es jetzt in der Zeile. */
       const warum = typeof sampleHinweis === 'function' ? sampleHinweis() : null;
       if(warum) zeigeKlangwarnung(warum);
+      /* Die Raumaufnahme wird nachgereicht, sobald sie dekodiert ist.
+         Hier stand einmal ein zweites buildBuses() - das baute den ganzen
+         Summenweg doppelt, siehe aktualisiereRaum(). */
+      if(typeof wartenAufBuffer === 'function') return wartenAufBuffer('__ir__');
+    }).then(function(){
+      if(typeof aktualisiereRaum === 'function') aktualisiereRaum();
     }).catch(function(){});
   }
   if(typeof weckeAudio === 'function') weckeAudio(); else if(actx.state === 'suspended') actx.resume();
@@ -1159,16 +1168,26 @@ function zugBewegen(e){
     hint('<b>' + zug.p.name + '</b> auf die Bühne ziehen und loslassen.');
   }
   e.preventDefault();
-  zug.geist.style.left = e.clientX + 'px';
-  zug.geist.style.top = e.clientY + 'px';
-  const buehne = $('.stage');
-  if(buehne) buehne.classList.toggle('zielaktiv', ueberBuehne(e.clientX, e.clientY));
+  /* Nur merken, gezeichnet wird einmal je Bild. elementFromPoint erzwingt
+     ein synchrones Layout; bei 120 Fingerereignissen je Sekunde auf dem
+     iPad war das ein spuerbarer Teil des Bildbudgets. */
+  zug.x = e.clientX; zug.y = e.clientY;
+  if(zug.bild) return;
+  zug.bild = requestAnimationFrame(function(){
+    if(!zug) return;
+    zug.bild = 0;
+    zug.geist.style.left = zug.x + 'px';
+    zug.geist.style.top = zug.y + 'px';
+    const buehne = $('.stage');
+    if(buehne) buehne.classList.toggle('zielaktiv', ueberBuehne(zug.x, zug.y));
+  });
 }
 function zugBeenden(e, abbruch){
   if(!zug || (e && e.pointerId !== undefined && e.pointerId !== zug.id)) return;
   const z = zug;
   zug = null;
   zugLauschenAus();
+  if(z.bild) cancelAnimationFrame(z.bild);
   if(z.geist) z.geist.remove();
   document.body.classList.remove('zieht');
   const buehne = $('.stage');
@@ -1223,7 +1242,11 @@ function addTrack(p){
   hint(ersetzt
     ? '<b>'+p.name+'</b> übernimmt den Kanal von <b>'+ersetzt+'</b>.'
     : '<b>'+p.name+'</b> spielt jetzt in Takt '+(curBar+1)+'.');
-  if(!playing) audition(t, t.steps.find(function(s){ return s !== null; }) || 4);
+  if(!playing){
+    /* Stufe 0 ist ein gueltiger Wert - mit `|| 4` fiel sie auf 4 zurueck. */
+    const erste = t.steps.find(function(s){ return s !== null; });
+    audition(t, erste === undefined ? 4 : erste);
+  }
   markStageDirty();
 }
 function removeTrack(uid){
